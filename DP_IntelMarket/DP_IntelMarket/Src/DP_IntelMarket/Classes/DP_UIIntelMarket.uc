@@ -64,7 +64,7 @@ simulated function BuildScreen()
 	ImageTarget = Spawn(class'UIImage', LibraryPanel).InitImage('MarketMenuImage');
 	//ImageTarget.LoadImage(m_strImage);
 	`log("m_strImage:"@m_strImage,true,'Team Dragonpunk POI Art');
-	ImageTarget.LoadImage("img:///DP_PlaceholderPOI.GoblinBazaar");
+	ImageTarget.LoadImage("img:///DP_PlaceholderPOI.POI_GoblinBazaar");
 
 	//-----------------------------------------------
 
