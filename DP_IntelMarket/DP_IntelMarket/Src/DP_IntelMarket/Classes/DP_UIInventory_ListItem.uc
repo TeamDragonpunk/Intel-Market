@@ -30,7 +30,7 @@ simulated function UIInventory_ListItem InitInventoryListItem(X2ItemTemplate Ini
 	ConfirmButtonStyle = InitConfirmButtonStyle;
 	InitListItem();
 
-	SetConfirmButtonStyle(ConfirmButtonStyle, Confirm, InitRightCol, InitHeight,, OnDoubleclickConfirmButton);
+	SetConfirmButtonStyle(ConfirmButtonStyle, Confirm, InitRightCol, InitHeight,OnClickConfirmButton, OnDoubleclickConfirmButton);
 
 	//Create all of the children before realizing, to be sure they can receive info. 
 	RealizeDisabledState();
@@ -57,7 +57,7 @@ simulated function InitInventoryListCommodity(MissionIntelOption initIntel,
 
 	InitListItem();
 
-	SetConfirmButtonStyle(ConfirmButtonStyle, Confirm, InitRightCol, InitHeight,, OnDoubleclickConfirmButton);
+	SetConfirmButtonStyle(ConfirmButtonStyle, Confirm, InitRightCol, InitHeight,OnClickConfirmButton, OnDoubleclickConfirmButton);
 
 	//Create all of the children before realizing, to be sure they can receive info. 
 	RealizeDisabledState();
@@ -231,7 +231,24 @@ simulated function PopulateData(optional bool bRealizeDisabled)
 	//Button.SetDisabled(bIsDisabled);
 	//ConfirmButton.SetDisabled(bIsDisabled);
 }
+simulated function string GetIntelFriendlyName()
+{
+	local X2HackRewardTemplateManager HackRewardTemplateManager;
+	local X2HackRewardTemplate OptionTemplate;
 
+	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
+	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntel.IntelRewardName);
+	return OptionTemplate.GetFriendlyName();
+}
+simulated function X2HackRewardTemplate GetIntelTemplate()
+{
+	local X2HackRewardTemplateManager HackRewardTemplateManager;
+	local X2HackRewardTemplate OptionTemplate;
+
+	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
+	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntel.IntelRewardName);
+	return OptionTemplate;
+}
 simulated function string GetColoredText(string Txt, optional int FontSize = 24)
 {
 	local int uiState;
@@ -272,6 +289,13 @@ simulated function bool OnUnrealCommand(int cmd, int arg)
 simulated function OnDoubleclickConfirmButton(UIButton Button)
 {
 	// do nothing
+}
+simulated function OnClickConfirmButton(UIButton Button)
+{
+	local XComGameState NewGS;
+	NewGS=class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Trigger GameState");
+	`XEVENTMGR.TriggerEvent('SelectedIntelOption',self,,NewGS);
+	`XCOMHISTORY.CleanupPendingGameState(NewGS);
 }
 
 defaultproperties

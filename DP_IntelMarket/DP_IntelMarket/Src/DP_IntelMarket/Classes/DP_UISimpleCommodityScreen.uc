@@ -139,6 +139,11 @@ simulated function int GetItemIndex(MissionIntelOption Item)
 //		return "";
 //	}
 //}
+simulated function MissionIntelOption GetIOPSItem(int ItemIndex)
+{
+	return 	arrIntelItems[ItemIndex];
+}
+
 simulated function X2HackRewardTemplate GetItemTemplate(int ItemIndex)
 {
 	local X2HackRewardTemplateManager HackRewardTemplateManager;

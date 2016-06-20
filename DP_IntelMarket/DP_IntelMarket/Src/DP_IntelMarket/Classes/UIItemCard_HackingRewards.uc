@@ -3,7 +3,7 @@
 class UIItemCard_HackingRewards extends UIItemCard;
 
 
-simulated function PopulateHackingItemCard(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef)
+simulated function PopulateIntelItemCard(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef,optional MissionIntelOption IntelOption)
 {
 	local string strDesc, strRequirement, strTitle;
 
@@ -26,20 +26,20 @@ simulated function PopulateHackingItemCard(optional X2HackRewardTemplate ItemTem
 	}
 	PopulateData(strTitle,"", strDesc, "");
 
-	SetHackingItemImages(ItemTemplate, ItemRef);
-	SetHackingItemCost(ItemTemplate, ItemRef);
+	SetIntelItemImages(ItemTemplate, ItemRef);
+	SetIntelItemCost(ItemTemplate, ItemRef,IntelOption);
 }
 
-simulated function SetHackingItemImages(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef)
+simulated function SetIntelItemImages(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef)
 {
 	MC.BeginFunctionOp("SetImageStack");
 	MC.QueueString(ItemTemplate.RewardImagePath);
 	MC.EndOp();
 }
-simulated function SetHackingItemCost(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef)
+simulated function SetIntelItemCost(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef,optional MissionIntelOption IntelOption)
 {
 	local string StrCost;
-	StrCost= ItemTemplate.MinIntelCost @"-" @ItemTemplate.MaxIntelCost;
+	StrCost= string(class'UIUtilities_Strategy'.static.GetCostQuantity(IntelOption.Cost, 'Intel')); //ItemTemplate.MinIntelCost @"-" @ItemTemplate.MaxIntelCost;
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString(m_strCostLabel);
 	MC.QueueString(StrCost);

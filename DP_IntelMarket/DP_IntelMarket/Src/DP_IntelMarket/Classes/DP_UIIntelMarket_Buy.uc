@@ -24,6 +24,8 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 {
 	local array<UIPanel> ItemCards;
 	local UIPanel Card;
+	local object thisObj;
+	thisObj=self;
 	m_strTitle = ""; //Clear the header out intentionally. 	
 	super.InitScreen(InitController, InitMovie, InitName);
 	SetBlackMarketLayout();
@@ -34,9 +36,9 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	HackingRewardCard=UIItemCard_HackingRewards(Spawn(class'UIItemCard_HackingRewards', ListContainer).InitItemCard('HackingItemCard'));
 	HackingRewardCard.SetPosition(635,0);
 	HackingRewardCard.Show();
-	HackingRewardCard.PopulateHackingItemCard();
+	HackingRewardCard.PopulateIntelItemCard();
 	HackingRewardCard.SetAlpha(1);
-	HackingRewardCard.PopulateHackingItemCard(self.GetItemTemplate(0));
+	HackingRewardCard.PopulateIntelItemCard(self.GetItemTemplate(0));
 	HackingRewardCard.Show();
 	ExitButton = Spawn(class'UILargeButton', self);
 	ExitButton.bAnimateOnInit = false;
@@ -49,6 +51,12 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	MC.QueueString("GOBLIN BAZAAR");
 	MC.EndOp();
 	GetItems();
+	`XEVENTMGR.RegisterForEvent(thisObj,'SelectedIntelOption',OnSelectedIntelOption, ELD_Immediate);
+}
+simulated function PopulateData()
+{
+	GetItems();
+	super.PopulateData();
 }
 simulated function OnStartMissionClicked(UIButton button)
 {
@@ -58,14 +66,39 @@ simulated function OnStartMissionClicked(UIButton button)
 	`SCREENSTACK.PopFirstInstanceOfClass(Class'DP_UIIntelMarket');
 	//CloseScreen();
 	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
+	BuyAndSaveIntelOptions();
 	if(MyScreen!=none)
 	{
 		MyScreen.ExposeOLC(button);
 	}
 	self.OnRemoved();
 }
+function EventListenerReturn OnSelectedIntelOption(Object EventData, Object EventSource, XComGameState NewGameState, Name InEventID)
+{
+	local array<string> strSplit;
+	local string strSearch;
+	local MissionIntelOption NewIntelO;
 
-	
+	NewIntelO=DP_UIInventory_ListItem(EventData).ItemIntel;
+	if( CanAffordItem(iSelectedItem) )
+	{
+		PlaySFX("StrategyUI_Purchase_Item");
+		`log("Can Affort Intel: "@GetIntelFriendlyName(NewIntelO),true,'Dragonpunk IntelMarket');
+		SelectedOptions.AddItem(NewIntelO);
+		/*strSplit=SplitString(GetIntelFriendlyName(NewIntelO)," ");
+		foreach strSplit(strSearch)
+		{
+			if("squad"~=strSearch||"squadwide"~=strSearch)
+			{
+				arrIntelItems.RemoveItem(NewIntelO);
+				break;
+			}	
+		}*/
+		PopulateData();
+	}
+	return ELR_NoInterrupt;
+}
+
 simulated function CloseScreen()
 {
 	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
@@ -109,13 +142,46 @@ simulated function OnPurchaseClicked(UIList kList, int itemIndex)
 		GetItems();
 		// Spawns inventory item for parent class. Replace with intel population for list
 		PopulateData();
-
+		
 	}
 	else
 	{
 		class'UIUtilities_Sound'.static.PlayNegativeSound();
 	}
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();
+}
+
+simulated function BuyAndSaveIntelOptions()
+{
+	local XComGameStateHistory History;
+	local XComGameState NewGameState;
+	local XComGameState_HeadquartersXCom XComHQ;
+	local XComGameState_MissionSite MissionState;
+	local MissionIntelOption IntelOption;
+	local UIMission Screen; 
+                            
+	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
+	History = `XCOMHISTORY;
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
+	
+	XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+	XComHQ = XComGameState_HeadquartersXCom(NewGameState.CreateStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
+	NewGameState.AddStateObject(XComHQ);
+	
+	MissionState = Screen.GetMission();
+	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
+	NewGameState.AddStateObject(MissionState);
+
+	// Save and buy the intel options, and add their tactical tags
+	foreach SelectedOptions(IntelOption)
+	{
+		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
+		XComHQ.PayStrategyCost(NewGameState, IntelOption.Cost, XComHQ.MissionOptionScalars);
+		MissionState.PurchasedIntelOptions.AddItem(IntelOption);
+	}
+	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
+	SelectedOptions.Length=0;
+
 }
 
 simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex)
@@ -128,7 +194,7 @@ simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex)
 	`log(self.GetItemDescString(ItemIndex),true,'Team Dragonpunk Goblin Bazaar');
 	ListContainer.RemoveChild(ItemCard);
 	HackingRewardCard.Show();
-	HackingRewardCard.PopulateHackingItemCard(self.GetItemTemplate(ItemIndex));
+	HackingRewardCard.PopulateIntelItemCard(self.GetItemTemplate(ItemIndex),,GetIOPSItem(ItemIndex));
 }
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
 
@@ -152,16 +218,63 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 {
 //	return GetMission().IntelOptions;
   	local UIMission Screen,Screen2; 
-                            
+    local array<MissionIntelOption> IOPS,IOPSOut;                  
+    local MissionIntelOption IntelOption,ExcIntelOption;
+	local name ExcIntelOptionName;                  
+	local bool HasExclusives;                  
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	Screen2=UIMission(movie.Stack.GetFirstInstanceOf(Class'UIMission'));
 	if(Screen!=none)
-		return Screen.GetMission().IntelOptions;
+		IOPS=Screen.GetMission().IntelOptions;
 	else if(Screen2!=none)
-		return Screen2.GetMission().IntelOptions;
+	{
+		IOPS=Screen2.GetMission().IntelOptions;
+		Screen=Screen2;
+	}
+
+	foreach IOPS(IntelOption)
+	{
+		HasExclusives=false;
+		foreach Screen.GetMission().PurchasedIntelOptions(ExcIntelOption)
+		{
+			foreach GetIntelItemTemplate(ExcIntelOption).MutuallyExclusiveRewards(ExcIntelOptionName)
+			{
+				if(string(IntelOption.IntelRewardName)~=string(ExcIntelOptionName))
+					HasExclusives=true;
+			}
+		}
+		foreach SelectedOptions(ExcIntelOption)
+		{
+			foreach GetIntelItemTemplate(ExcIntelOption).MutuallyExclusiveRewards(ExcIntelOptionName)
+			{
+				if(string(IntelOption.IntelRewardName)~=string(ExcIntelOptionName))
+					HasExclusives=true;
+			}
+		}
+		if((Screen.GetMission().PurchasedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1 && SelectedOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1) &&HasExclusives==false)
+			IOPSOut.AddItem(IntelOption);
+	}
+	return IOPSOut;
 
 }
+simulated function string GetIntelFriendlyName(MissionIntelOption ItemIntel)
+{
+	local X2HackRewardTemplateManager HackRewardTemplateManager;
+	local X2HackRewardTemplate OptionTemplate;
 
+	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
+	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntel.IntelRewardName);
+	return OptionTemplate.GetFriendlyName();
+}
+simulated function X2HackRewardTemplate GetIntelItemTemplate(MissionIntelOption ItemIntel)
+{
+	local X2HackRewardTemplateManager HackRewardTemplateManager;
+	local X2HackRewardTemplate OptionTemplate;
+	
+	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
+	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntel.IntelRewardName);
+	return OptionTemplate;
+}
 //Sends the bought items to game to make changes. Will be replaced by IntelOptions mission code
 simulated function GetItems()
 {
