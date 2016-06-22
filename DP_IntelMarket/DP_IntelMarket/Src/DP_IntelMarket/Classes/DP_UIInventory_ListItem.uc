@@ -292,10 +292,7 @@ simulated function OnDoubleclickConfirmButton(UIButton Button)
 }
 simulated function OnClickConfirmButton(UIButton Button)
 {
-	local XComGameState NewGS;
-	NewGS=class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Trigger GameState");
-	`XEVENTMGR.TriggerEvent('SelectedIntelOption',self,,NewGS);
-	`XCOMHISTORY.CleanupPendingGameState(NewGS);
+	DP_UIIntelMarket_Buy(`ScreenStack.GetFirstInstanceOf(class'DP_UIIntelMarket_Buy')).OnPurchasedAnIOPS(ItemIntel);
 }
 
 defaultproperties

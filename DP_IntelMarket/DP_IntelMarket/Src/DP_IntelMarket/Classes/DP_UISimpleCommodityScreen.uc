@@ -13,7 +13,7 @@ var EUIConfirmButtonStyle m_eStyle;
 var int ConfirmButtonX;
 var int ConfirmButtonY;
 
-var UIText OptionDescText;
+//var UIText OptionDescText;
 
 var public localized String m_strBuy;
 
@@ -54,6 +54,9 @@ simulated function PopulateData()
 	// Using this from Elad's suggestion...
 	local UIMechaListItem MyItem;
 	local int i;
+	local UIMission Screen; 
+                            
+	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 
 	List.ClearItems();
 	// May need to comment this out..
@@ -63,18 +66,9 @@ simulated function PopulateData()
 	{
 		MyItem = none; 
 		Template = arrIntelItems[i];
-		if(i < m_arrRefs.Length)
-		{
-			Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template, m_arrRefs[i], GetButtonString(i), m_eStyle, ConfirmButtonX, ConfirmButtonY);
-//		MyItem=Spawn(class'UIMechaListItem', List.itemContainer).InitListItem();
-//		MyItem.UpdateDataButton(string(arrIntelItems[i].IntelRewardName), GetButtonString(i), OnPurchaseClicked);
-		}
-		else
-		{
-			Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template, , GetButtonString(i), m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, GetButtonString(i), m_eStyle, ConfirmButtonX, ConfirmButtonY);
 //		MyItem=Spawn(class'UIMechaListItem', List.itemContainer).InitListItem();
 //		MyItem.UpdateDataButton("NOTHING HERE MOVE ALONG", GetButtonString(i), OnPurchaseClicked);
-		}
 	}
 
 //	if(List.ItemCount > 0)
@@ -85,7 +79,6 @@ simulated function PopulateData()
 //		else
 //			PopulateResearchCard(UIInventory_ListItem(List.GetItem(0)).ItemComodity, UIInventory_ListItem(List.GetItem(0)).ItemRef);
 //	}
-
 	if(List.ItemCount == 0 && m_strEmptyListTitle != "")
 	{
 		TitleHeader.SetText(m_strTitle, m_strEmptyListTitle);
@@ -105,10 +98,10 @@ simulated function SelectIntelItem(UIList ContainerList, int ItemIndex)
 	//SelectedOption = GetMission().IntelOptions[ItemIndex];
 	//MissionState = XComGameState_MissionSite(XCOMHISTORY.GetGameStateForObjectID(MissionRef.ObjectID));
 	//SelectedOption = MissionState.IntelOptions[ItemIndex];
-	SelectedOption = XComGameState_MissionSite(`XCOMHISTORY.GetGameStateForObjectID(UIMission(Screen).MissionRef.ObjectID)).IntelOptions[ItemIndex];
-	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(SelectedOption.IntelRewardName);
+	//SelectedOption = XComGameState_MissionSite(`XCOMHISTORY.GetGameStateForObjectID(UIMission(Screen).MissionRef.ObjectID)).IntelOptions[ItemIndex];
+	//OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(SelectedOption.IntelRewardName);
 
-	OptionDescText.SetText(OptionTemplate.GetDescription(none));
+	//OptionDescText.SetText(OptionTemplate.GetDescription(none));
 }
 
 //simulated function int GetItemIndex(Commodity Item)
@@ -260,6 +253,7 @@ simulated function bool CanAffordItem(int ItemIndex)
 simulated function bool CanAffordIntelOptions(MissionIntelOption IntelOption)
 {
 //	return (GetTotalIntelCost() <= GetAvailableIntel());
+	
 	return (GetIntelCost(IntelOption) <= GetAvailableIntel());
 }
 

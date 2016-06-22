@@ -33,7 +33,10 @@ simulated function PopulateIntelItemCard(optional X2HackRewardTemplate ItemTempl
 simulated function SetIntelItemImages(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef)
 {
 	MC.BeginFunctionOp("SetImageStack");
-	MC.QueueString(ItemTemplate.RewardImagePath);
+	if(ItemTemplate.RewardImagePath!="")
+		MC.QueueString(ItemTemplate.RewardImagePath);
+	else
+		MC.QueueString("img:///DP_PlaceholderPOI.POI_GoblinBazaar");
 	MC.EndOp();
 }
 simulated function SetIntelItemCost(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef,optional MissionIntelOption IntelOption)
@@ -43,6 +46,20 @@ simulated function SetIntelItemCost(optional X2HackRewardTemplate ItemTemplate, 
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString(m_strCostLabel);
 	MC.QueueString(StrCost);
+	MC.QueueString("");
+	MC.QueueString("");
+	MC.EndOp();
+}
+
+simulated function SetInitialParameters()
+{
+	PopulateData("Welcome","", "", "");
+	MC.BeginFunctionOp("SetImageStack");
+	MC.QueueString("img:///DP_PlaceholderPOI.POI_GoblinBazaar");
+	MC.EndOp();
+	MC.BeginFunctionOp("PopulateCostData");
+	MC.QueueString("");
+	MC.QueueString("The Goblins Welcome You To Their Bazzar");
 	MC.QueueString("");
 	MC.QueueString("");
 	MC.EndOp();

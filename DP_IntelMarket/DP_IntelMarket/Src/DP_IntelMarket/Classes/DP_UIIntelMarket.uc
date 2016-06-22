@@ -118,21 +118,17 @@ simulated function OnSellClicked(UIButton button)
 {
 	local DP_UIMission_Council MyScreen;
     CloseScreen();
-	MyScreen=DP_UIMission_Council(`ScreenStack.GetFirstInstanceOf(class'UIMission'));
+	/*MyScreen=DP_UIMission_Council(`ScreenStack.GetFirstInstanceOf(class'UIMission'));
 	if(MyScreen!=none)
 	{
 		MyScreen.ExposeOLC(button);
-	}
-	self.Removed();
+	}*/
 }
 
-// Override for custom cleanup logic// TODO: Move custom logic to UIMission for use in all 7 mission types...simulated function OnRemoved()
-{
-	super.OnRemoved();
-}
+// Override for custom cleanup logic// TODO: Move custom logic to UIMission for use in all 7 mission types...
 
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
-simulated function DP_UIIntelMarketBuy(){	local DP_UIIntelMarket_Buy kScreen;	kScreen = Spawn(class'DP_UIIntelMarket_Buy', self);	`ScreenStack.Push(kScreen);	`log("-------------DOING THE BUY SCREEN-----------------",true,'Team Dragonpunk Intel Market');}
+simulated function DP_UIIntelMarketBuy(){	local DP_UIIntelMarket_Buy kScreen;	kScreen = Spawn(class'DP_UIIntelMarket_Buy', self);	`ScreenStack.Push(kScreen);	kScreen.SelectedIntelOptions.length=0;	`log("-------------DOING THE BUY SCREEN-----------------",true,'Team Dragonpunk Intel Market');}
 
 simulated function CloseScreen()
 {
