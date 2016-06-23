@@ -1,5 +1,5 @@
 
-class DP_UIMission_Council extends UIMission_Council;
+class DP_UIMission_Retaliation extends UIMission_Retaliation;
 
 simulated public function OnLaunchClicked(UIButton button)
 {

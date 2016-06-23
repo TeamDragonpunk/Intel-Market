@@ -71,7 +71,7 @@ simulated function OnStartMissionClicked(UIButton button)
 {
 	local DP_UIMission_Council MyScreen;
 	local DP_UIIntelMarket MyDPScreen;
-	MyScreen=DP_UIMission_Council(`ScreenStack.GetFirstInstanceOf(class'UIMission'));
+	//MyScreen=DP_UIMission_Council(`ScreenStack.GetFirstInstanceOf(class'UIMission'));
 	MyDPScreen=DP_UIIntelMarket(`ScreenStack.GetFirstInstanceOf(class'DP_UIIntelMarket'));
 	`SCREENSTACK.Pop(self);
 	`SCREENSTACK.PopFirstInstanceOfClass(Class'DP_UIIntelMarket');
@@ -79,9 +79,9 @@ simulated function OnStartMissionClicked(UIButton button)
 	CloseScreen();
 	//MyDPScreen.CloseScreen();
 	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
-	if(MyScreen!=none)
+	if(MyDPScreen!=none)
 	{
-		MyScreen.ExposeOLC(button);
+		MyDPScreen.ExposeOLC(button);
 	}
 }
 function OnPurchasedAnIOPS(MissionIntelOption NewIntelO)

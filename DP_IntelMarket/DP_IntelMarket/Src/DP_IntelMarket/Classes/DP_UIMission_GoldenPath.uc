@@ -1,5 +1,5 @@
 
-class DP_UIMission_Council extends UIMission_Council;
+class DP_UIMission_GoldenPath extends UIMission_GoldenPath;
 
 simulated public function OnLaunchClicked(UIButton button)
 {

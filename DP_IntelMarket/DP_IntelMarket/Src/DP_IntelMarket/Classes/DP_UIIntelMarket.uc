@@ -130,6 +130,42 @@ simulated function OnSellClicked(UIButton button)
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
 simulated function DP_UIIntelMarketBuy(){	local DP_UIIntelMarket_Buy kScreen;	kScreen = Spawn(class'DP_UIIntelMarket_Buy', self);	`ScreenStack.Push(kScreen);	kScreen.SelectedIntelOptions.length=0;	`log("-------------DOING THE BUY SCREEN-----------------",true,'Team Dragonpunk Intel Market');}
 
+simulated function ExposeOLC(UIButton Button)
+{
+	local UIScreen MissionScreen;
+	MissionScreen=`ScreenStack.GetFirstInstanceOf(class'UIMission');
+	Switch(MissionScreen.class)
+	{
+		case Class'DP_UIMission_AlienFacility':
+			DP_UIMission_AlienFacility(MissionScreen).ExposeOLC(Button);
+			break;
+		case Class'DP_UIMission_Council':
+			DP_UIMission_Council(MissionScreen).ExposeOLC(Button);
+			break;
+		case Class'DP_UIMission_GoldenPath':
+			DP_UIMission_GoldenPath(MissionScreen).ExposeOLC(Button);
+			break;
+		case Class'DP_UIMission_GOps':
+			DP_UIMission_GOps(MissionScreen).ExposeOLC(Button);
+			break;
+		case Class'DP_UIMission_GPIntelOptions':
+			DP_UIMission_GPIntelOptions(MissionScreen).ExposeOLC(Button);
+			break;
+		case Class'DP_UIMission_LandedUFO':
+			DP_UIMission_LandedUFO(MissionScreen).ExposeOLC(Button);
+			break;
+		case Class'DP_UIMission_Retaliation':
+			DP_UIMission_Retaliation(MissionScreen).ExposeOLC(Button);
+			break;
+		case Class'DP_UIMission_SupplyRaid':
+			DP_UIMission_SupplyRaid(MissionScreen).ExposeOLC(Button);
+			break;
+		default:
+			break;
+
+	}	
+}
+
 simulated function CloseScreen()
 {
 	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
