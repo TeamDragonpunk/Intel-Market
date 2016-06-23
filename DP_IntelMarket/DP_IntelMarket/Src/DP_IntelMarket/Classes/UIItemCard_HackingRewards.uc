@@ -64,3 +64,17 @@ simulated function SetInitialParameters()
 	MC.QueueString("");
 	MC.EndOp();
 }
+
+simulated function SetNullParameters()
+{
+	PopulateData("","", "", "");
+	MC.BeginFunctionOp("SetImageStack");
+	MC.QueueString("img:///DP_PlaceholderPOI.POI_GoblinBazaar");
+	MC.EndOp();
+	MC.BeginFunctionOp("PopulateCostData");
+	MC.QueueString("");
+	MC.QueueString("");
+	MC.QueueString("");
+	MC.QueueString("");
+	MC.EndOp();
+}

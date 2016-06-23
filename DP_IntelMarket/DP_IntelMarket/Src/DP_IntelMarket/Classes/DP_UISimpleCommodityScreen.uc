@@ -1,7 +1,7 @@
 class DP_UISimpleCommodityScreen extends UIInventory;
 
 // From GPIntelOptions
-var array<MissionIntelOption> arrIntelItems;
+var array<MissionIntelOption> arrIntelItems,MissionActive;
 // var array<Commodity>		arrItems;
 var int						iSelectedItem;
 var array<StateObjectReference> m_arrRefs;
@@ -16,6 +16,7 @@ var int ConfirmButtonY;
 //var UIText OptionDescText;
 
 var public localized String m_strBuy;
+var public localized String m_strRefund;
 
 simulated function OnPurchaseClicked(UIList kList, int itemIndex)
 {
@@ -85,7 +86,88 @@ simulated function PopulateData()
 		SetCategory("");
 	}
 }
+simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOptions)
+{
+	local MissionIntelOption Template,ExtraTemplate;
+	local int i;
+	local UIMission Screen; 
+    local DP_UIInventory_ListItem TempListItem;                      
+	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 
+	List.ClearItems();
+	MissionActive.Length=0;
+	// May need to comment this out..
+//	PopulateItemCard();
+  	foreach Screen.GetMission().IntelOptions(Template)
+  	{
+		if(SelectedOptions.Find('IntelRewardName',Template.IntelRewardName)==-1&&arrIntelItems.Find('IntelRewardName',Template.IntelRewardName)==-1)
+		MissionActive.AddItem(Template);
+	}
+	if(MissionActive.Length>0)
+	{
+		ExtraTemplate.IntelRewardName='';
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		TempListItem=DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1));
+		TempListItem.MC.BeginFunctionOp("populateData");
+		TempListItem.MC.QueueString(TempListItem.GetColoredText("Active Items:"));
+		TempListItem.MC.QueueString(TempListItem.GetColoredText(""));
+		TempListItem.MC.EndOp();
+		TempListItem.SetText("Active Items:");
+		TempListItem.SetBad(True,"");
+
+	}
+	for(i = 0; i < MissionActive.Length; i++)
+	{
+		Template = MissionActive[i];
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(True,"");
+	}
+	if(SelectedOptions.Length>0)
+	{
+		ExtraTemplate.IntelRewardName='';
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		TempListItem=DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1));
+		TempListItem.SetBad(True,"");
+		TempListItem.MC.BeginFunctionOp("populateData");
+		TempListItem.MC.QueueString(TempListItem.GetColoredText("Purchased Items:"));
+		TempListItem.MC.QueueString(TempListItem.GetColoredText(""));
+		TempListItem.MC.EndOp();
+		TempListItem.SetText("Purchased Items:");
+		TempListItem.SetBad(True,"");
+	}
+	for(i = 0; i < SelectedOptions.Length; i++)
+	{
+		Template = SelectedOptions[i];
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "REFUND", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(False,"");
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetDisabled(False,"");
+		//List.itemContainer.SwapChildren(List.itemContainer.NumChildren()-1,i);
+	}
+	if(arrIntelItems.Length>0)
+	{
+		ExtraTemplate.IntelRewardName='';
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		TempListItem=DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1));
+		TempListItem.SetBad(True,"");
+		TempListItem.MC.BeginFunctionOp("populateData");
+		TempListItem.MC.QueueString(TempListItem.GetColoredText("Available Items:"));
+		TempListItem.MC.QueueString(TempListItem.GetColoredText(""));
+		TempListItem.MC.EndOp();
+		TempListItem.SetText("Available Items:");
+		TempListItem.SetBad(True,"");
+	}
+	for(i = 0; i < arrIntelItems.Length; i++)
+	{
+		Template = arrIntelItems[i];
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef,GetButtonString(i) , m_eStyle, ConfirmButtonX, ConfirmButtonY);
+	}
+	
+	if(List.ItemCount == 0 && m_strEmptyListTitle != "")
+	{
+		TitleHeader.SetText(m_strTitle, m_strEmptyListTitle);
+		SetCategory("");
+	}
+}
 // Use this to create initial list population above and then delete!
 simulated function SelectIntelItem(UIList ContainerList, int ItemIndex)
 {

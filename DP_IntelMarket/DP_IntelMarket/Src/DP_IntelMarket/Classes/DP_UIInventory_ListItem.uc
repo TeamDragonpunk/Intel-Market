@@ -213,12 +213,14 @@ simulated function PopulateData(optional bool bRealizeDisabled)
 	else
 	{
 		OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntel.IntelRewardName);
-		MC.QueueString(GetColoredText(OptionTemplate.GetFriendlyName()));
+		if(OptionTemplate!=none)
+			MC.QueueString(GetColoredText(OptionTemplate.GetFriendlyName()));
+		else
+			MC.QueueString(GetColoredText(""));
 		ItemQuantity = GetColoredText("");
 	}
-	
+
 	MC.QueueString(ItemQuantity);
-	
 	MC.EndOp();
 
 	//---------------

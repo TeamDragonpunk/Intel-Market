@@ -59,14 +59,13 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	GetItems();
 	SelectedIntelOptions=GetMissionPurchasedOptions();
 	
-	//`XEVENTMGR.RegisterForEvent(thisObj,'SelectedIntelOption',OnPurchasedAnIOPS);
 }
 simulated function PopulateData()
 {
 	GetItems();
 	ResourceContainer.Show();
 	m_arrRefs.length=0;
-	super.PopulateData();
+	PopulateDataWithRefund(SelectedIntelOptions);
 }
 simulated function OnStartMissionClicked(UIButton button)
 {
@@ -93,8 +92,16 @@ function OnPurchasedAnIOPS(MissionIntelOption NewIntelO)
 	if( CanAffordIntelOptionsAll(NewIntelO,true) )
 	{
 		PlaySFX("StrategyUI_Purchase_Item");
-		`log("Can Affort Intel: "@GetIntelFriendlyName(NewIntelO),true,'Dragonpunk IntelMarket');
-		SelectedIntelOptions.AddItem(NewIntelO);
+		if(SelectedIntelOptions.Find('IntelRewardName',NewIntelO.IntelRewardName)==-1)
+		{
+			`log("Can Affort Intel: "@GetIntelFriendlyName(NewIntelO),true,'Dragonpunk IntelMarket');
+			SelectedIntelOptions.AddItem(NewIntelO);
+		}
+		else
+		{
+			`log("Refunding Intel: "@GetIntelFriendlyName(NewIntelO),true,'Dragonpunk IntelMarket');
+			SelectedIntelOptions.RemoveItem(NewIntelO);
+		}	
 		/*strSplit=SplitString(GetIntelFriendlyName(NewIntelO)," ");
 		foreach strSplit(strSearch)
 		{
@@ -180,7 +187,10 @@ simulated function UpdateIntel()
 //Manges the original BM_Buy logic for repopulating list
 simulated function OnPurchaseClicked(UIList kList, int itemIndex)
 {
-	OnPurchasedAnIOPS(GetIOPSItem(iSelectedItem));
+	local MissionIntelOption ThisSelectedIOP;
+	ThisSelectedIOP=(DP_UIInventory_ListItem(kList.ItemContainer.GetChildAt(ItemIndex)).ItemIntel);
+	if(MissionActive.Find('IntelRewardName',ThisSelectedIOP.IntelRewardName)==-1)
+		OnPurchasedAnIOPS(ThisSelectedIOP);
 }
 
 simulated function BuyAndSaveIntelOptions()
@@ -237,17 +247,23 @@ simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex)
 {
 	local array<UIPanel> ItemCards;
 	local UIPanel Card;
+	local MissionIntelOption SelectedIOP;
 	
+	SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).ItemIntel;
+
 	super.SelectedItemChanged(ContainerList,ItemIndex);
-	//TitleHeader.SetText(self.GetItemDescString(ItemIndex));
-	`log(self.GetItemDescString(ItemIndex),true,'Team Dragonpunk Goblin Bazaar');
+	`log(GetIntelItemTemplate(SelectedIOP).GetDescription(none),true,'Team Dragonpunk Goblin Bazaar');
 	ListContainer.RemoveChild(ItemCard);
 	HackingRewardCard.Show();
-	HackingRewardCard.PopulateIntelItemCard(self.GetItemTemplate(ItemIndex),,GetIOPSItem(ItemIndex));
-	if(!CanAffordIntelOptionsAll(GetIOPSItem(iSelectedItem)))
-		DP_UIInventory_ListItem(ContainerList.GetItem(ItemIndex)).SetBad(true,"Cant Afford This Purchase");
+	if(SelectedIOP.IntelRewardName!='')
+		HackingRewardCard.PopulateIntelItemCard(GetIntelItemTemplate(SelectedIOP),,SelectedIOP);
 	else
-		DP_UIInventory_ListItem(ContainerList.GetItem(ItemIndex)).SetBad(false,"");
+		HackingRewardCard.SetNullParameters();
+		
+	if(!CanAffordIntelOptionsAll(SelectedIOP)&& SelectedIntelOptions.Find('IntelRewardName',SelectedIOP.IntelRewardName)==-1)
+		DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).SetBad(true,"Cant Afford This Purchase");
+	else
+		DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).SetBad(false,"");
 
 }
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
@@ -351,49 +367,6 @@ simulated function GetItems()
 	// TODO: This is where we need to populate the list with unpurchased hacker rewards
 //	arrItems = GetMarket().GetForSaleList();
 	arrIntelItems = GetMissionIntelOptions();
-}
-
-// Buys the selected rewards. Will need to change to purchase rewards one at a time. Make Global?
-simulated function BuyIntelOptions()
-{
-	local XComGameStateHistory History;
-	local XComGameState NewGameState;
-	local XComGameState_HeadquartersXCom XComHQ;
-	local XComGameState_MissionSite MissionState;
-	local MissionIntelOption IntelOption;
-    local int i;                       
-
-	History = `XCOMHISTORY;
-	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy Mission Intel Options");
-	XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
-	XComHQ = XComGameState_HeadquartersXCom(NewGameState.CreateStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
-	NewGameState.AddStateObject(XComHQ);
-
-	// Delete this and mirror the single use logic in BM_Buy + repopulation
-	for(i=0;i<SelectedIntelOptions.length;i++)
-	{
-		IntelOption=SelectedIntelOptions[i];
-		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
-		XComHQ.PayStrategyCost(NewGameState, IntelOption.Cost, XComHQ.MissionOptionScalars);
-	}
-
-	// Save the purchased options
-	MissionState = XComGameState_MissionSite(`XCOMHISTORY.GetGameStateForObjectID(UIMission(Screen).MissionRef.ObjectID));
-//	MissionState = GetMission();
-//	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
-	MissionState = XComGameState_MissionSite(`XCOMHISTORY.GetGameStateForObjectID(UIMission(Screen).MissionRef.ObjectID));
-	NewGameState.AddStateObject(MissionState);
-	MissionState.PurchasedIntelOptions = SelectedIntelOptions;
-
-	if (NewGameState.GetNumGameStateObjects() > 0)
-	{
-		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
-	}
-	else
-	{
-		// Understand this better. Might be worth calling even if no intel is bought.
-		History.CleanupPendingGameState(NewGameState);
-	}
 }
 
 simulated function AddResource(string label, string data)
