@@ -122,7 +122,10 @@ simulated function bool CanAffordIntelOptionsAll(MissionIntelOption IntelOption,
 	local MissionIntelOption tempIntelOption;
 	local int TotalCostRightNow,i;
 //	return (GetTotalIntelCost() <= GetAvailableIntel());
-  	TotalCostRightNow=0;                                                   
+  	TotalCostRightNow=0;    
+	if(SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName)!=-1)   
+		return true;
+                                     
 	for(i=0;i<SelectedIntelOptions.length;i++)
 	{
 		tempIntelOption=SelectedIntelOptions[i];
@@ -201,7 +204,8 @@ simulated function BuyAndSaveIntelOptions()
 	local XComGameState_MissionSite MissionState;
 	local MissionIntelOption IntelOption;
 	local UIMission Screen; 
-    local int i;                       
+	local bool StartingConcealed;
+    local int i,k;                       
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
@@ -248,9 +252,8 @@ simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex)
 	local array<UIPanel> ItemCards;
 	local UIPanel Card;
 	local MissionIntelOption SelectedIOP;
-	
+	local int i;
 	SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).ItemIntel;
-
 	super.SelectedItemChanged(ContainerList,ItemIndex);
 	`log(GetIntelItemTemplate(SelectedIOP).GetDescription(none),true,'Team Dragonpunk Goblin Bazaar');
 	ListContainer.RemoveChild(ItemCard);
@@ -259,12 +262,26 @@ simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex)
 		HackingRewardCard.PopulateIntelItemCard(GetIntelItemTemplate(SelectedIOP),,SelectedIOP);
 	else
 		HackingRewardCard.SetNullParameters();
-		
-	if(!CanAffordIntelOptionsAll(SelectedIOP)&& SelectedIntelOptions.Find('IntelRewardName',SelectedIOP.IntelRewardName)==-1)
-		DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).SetBad(true,"Cant Afford This Purchase");
-	else
-		DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).SetBad(false,"");
+	for(i=0;i<ContainerList.ItemContainer.NumChildren();i++)
+	{
+		SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).ItemIntel;
+		if((arrIntelItems.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1))
+		{
+			if(!CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==false)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==false)))
+			{
+				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(true,"Cant Afford This Purchase");
+				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(true,"Cant Afford This Purchase");
+			}
+			else if(CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==true)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==true)))
+			{
+				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
+				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(false);
+			}
+		}
+		else if(SelectedIntelOptions.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1)
+			DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
 
+	}
 }
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
 
@@ -282,7 +299,14 @@ simulated function String GetButtonString(int ItemIndex)
 //		return m_strBuy;
 		return "BUY";
 }
-
+simulated function PickIntelOptions(XComGameState_MissionSite MissionState)
+{
+	local XComGameState NewGameState;
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
+	NewGameState.AddStateObject(MissionState);
+	MissionState.PickIntelOptions();
+	`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+}
 // Not sure if this gets the bought intel options, or ones available to purchase for the mission
 simulated function array<MissionIntelOption> GetMissionIntelOptions()
 {
@@ -292,18 +316,44 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
     local MissionIntelOption IntelOption,ExcIntelOption;
 	local name ExcIntelOptionName;                  
 	local bool HasExclusives;     
-    local int i;                       
-             
+    local bool StartingConcealed,HasMaxSlots;
+    local int i,k;                     
+    local XComTacticalMissionManager MissionMgr;    
+    local MissionSchedule Schedule;  
+	local XComGameState_MissionSite MissionState;
+	local XComGameState NewGameState;
+	local XComGameState_HeadquartersXCom XComHQ;
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
+	MissionMgr=`TACTICALMISSIONMGR;
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	Screen2=UIMission(movie.Stack.GetFirstInstanceOf(Class'UIMission'));
+	StartingConcealed=true;
+	MissionState = Screen.GetMission();
+	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
+	//MissionState.GetShadowChamberStrings();
+	`log("Schedule name:"@(string(MissionState.SelectedMissionData.SelectedMissionScheduleName)));
+	XComHQ = class'UIUtilities_Strategy'.static.GetXComHQ();
+	for(k=0;k<MissionState.GeneratedMission.Mission.MissionSchedules.Length;k++)
+	{
+		MissionMgr.GetMissionSchedule(MissionState.GeneratedMission.Mission.MissionSchedules[k],Schedule);
+		`log("Schedule"@k @"name:"@(string(Schedule.ScheduleID)));
+		if(Schedule.XComSquadStartsConcealed==false &&string(Schedule.ScheduleID)!="None" && string(Schedule.ScheduleID)!="")
+			StartingConcealed=false;
+	}
 	if(Screen!=none)
+	{
+		if(Screen.GetMission().IntelOptions.Length==0)
+			PickIntelOptions(Screen.GetMission());
 		IOPS=Screen.GetMission().IntelOptions;
+	}
 	else if(Screen2!=none)
 	{
+		if(Screen2.GetMission().IntelOptions.Length==0)
+			PickIntelOptions(Screen2.GetMission());
 		IOPS=Screen2.GetMission().IntelOptions;
 		Screen=Screen2;
 	}
-
+	`XCOMHISTORY.CleanupPendingGameState(NewGameState);
 	foreach IOPS(IntelOption)
 	{
 		HasExclusives=false;
@@ -324,7 +374,13 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 					HasExclusives=true;
 			}
 		}
-		if((Screen.GetMission().PurchasedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1 && SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1) &&HasExclusives==false)
+		if(StartingConcealed&&(string(IntelOption.IntelRewardName)~="SquadConceal_Intel"||string(IntelOption.IntelRewardName)~="IndividualConceal_Intel"))
+			StartingConcealed=true;
+		else
+			StartingConcealed=false;
+		if(XComHQ.SoldierUnlockTemplates.Find('SquadSizeIIUnlock') != INDEX_NONE&&(string(IntelOption.IntelRewardName)~="ExtraSoldier_Intel"))
+			HasMaxSlots=true;
+		if(HasMaxSlots==false&&StartingConcealed==false&&(Screen.GetMission().PurchasedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1 && SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1) &&HasExclusives==false)
 			IOPSOut.AddItem(IntelOption);
 	}
 	return IOPSOut;

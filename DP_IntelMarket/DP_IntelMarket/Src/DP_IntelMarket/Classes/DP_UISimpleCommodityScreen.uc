@@ -98,11 +98,8 @@ simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOpti
 	MissionActive.Length=0;
 	// May need to comment this out..
 //	PopulateItemCard();
-  	foreach Screen.GetMission().IntelOptions(Template)
-  	{
-		if(SelectedOptions.Find('IntelRewardName',Template.IntelRewardName)==-1&&arrIntelItems.Find('IntelRewardName',Template.IntelRewardName)==-1)
-		MissionActive.AddItem(Template);
-	}
+  	MissionActive=Screen.GetMission().PurchasedIntelOptions;
+
 	if(MissionActive.Length>0)
 	{
 		ExtraTemplate.IntelRewardName='';
@@ -120,7 +117,8 @@ simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOpti
 	{
 		Template = MissionActive[i];
 		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
-		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(True,"");
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(True,"Already active, Can't refund");
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetDisabled(True,"Already active, Can't refund");
 	}
 	if(SelectedOptions.Length>0)
 	{
@@ -167,6 +165,9 @@ simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOpti
 		TitleHeader.SetText(m_strTitle, m_strEmptyListTitle);
 		SetCategory("");
 	}
+	`log("1: Number of active:"@MissionActive.Length @"Number of Purchased:" @SelectedOptions.Length @"Number of Available"@arrIntelItems.Length,true,'Team Dragonpunk');
+	`log("2: Number of active:"@Screen.GetMission().PurchasedIntelOptions.Length @"Number of Purchased:" @SelectedOptions.Length @"Number of Available"@Screen.GetMission().IntelOptions.Length,true,'Team Dragonpunk');
+	
 }
 // Use this to create initial list population above and then delete!
 simulated function SelectIntelItem(UIList ContainerList, int ItemIndex)
