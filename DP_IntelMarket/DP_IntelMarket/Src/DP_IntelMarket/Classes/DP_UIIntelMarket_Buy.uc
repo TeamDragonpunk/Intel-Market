@@ -9,7 +9,7 @@ var localized String IntelTotalLabel;
 var UIX2ResourceHeader			ResourceContainer;
 
 // List may not be needed
-var UIList List;
+//var UIList List;
 //var UIText OptionDescText;
 
 var UILargeButton ExitButton;
@@ -57,8 +57,9 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	MC.QueueString("GOBLIN BAZAAR");
 	MC.EndOp();
 	GetItems();
-	SelectedIntelOptions=GetMissionPurchasedOptions();
-	
+	SelectedIntelOptions.Length=0;
+	PopulateData();
+	UpdateListParameters(self.List);
 }
 simulated function PopulateData()
 {
@@ -92,7 +93,7 @@ function OnPurchasedAnIOPS(MissionIntelOption NewIntelO)
 	if( CanAffordIntelOptionsAll(NewIntelO,true) )
 	{
 		PlaySFX("StrategyUI_Purchase_Item");
-		if(SelectedIntelOptions.Find('IntelRewardName',NewIntelO.IntelRewardName)==-1)
+		if(SelectedIntelOptions.Find('IntelRewardName',NewIntelO.IntelRewardName)==-1 &&MissionActive.Find('IntelRewardName',NewIntelO.IntelRewardName)==-1)
 		{
 			`log("Can Affort Intel: "@GetIntelFriendlyName(NewIntelO),true,'Dragonpunk IntelMarket');
 			SelectedIntelOptions.AddItem(NewIntelO);
@@ -262,26 +263,34 @@ simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex)
 		HackingRewardCard.PopulateIntelItemCard(GetIntelItemTemplate(SelectedIOP),,SelectedIOP);
 	else
 		HackingRewardCard.SetNullParameters();
-	for(i=0;i<ContainerList.ItemContainer.NumChildren();i++)
-	{
-		SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).ItemIntel;
-		if((arrIntelItems.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1))
-		{
-			if(!CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==false)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==false)))
-			{
-				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(true,"Cant Afford This Purchase");
-				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(true,"Cant Afford This Purchase");
-			}
-			else if(CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==true)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==true)))
-			{
-				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
-				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(false);
-			}
-		}
-		else if(SelectedIntelOptions.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1)
-			DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
+	UpdateListParameters(ContainerList);
+}
 
-	}
+simulated function UpdateListParameters(UIList ContainerList)
+{
+	local MissionIntelOption SelectedIOP;
+	local int i;
+
+	for(i=0;i<ContainerList.ItemContainer.NumChildren();i++)
+		{
+			SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).ItemIntel;
+			if((arrIntelItems.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1))
+			{
+				if(!CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==false)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==false)))
+				{
+					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(true,"Cant Afford This Purchase");
+					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(true,"Cant Afford This Purchase");
+				}
+				else if(CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==true)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==true)))
+				{
+					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
+					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(false);
+				}
+			}
+			else if(SelectedIntelOptions.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1)
+				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
+
+		}	
 }
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
 

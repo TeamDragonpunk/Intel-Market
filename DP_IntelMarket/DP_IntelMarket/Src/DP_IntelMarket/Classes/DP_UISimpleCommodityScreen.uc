@@ -31,8 +31,9 @@ simulated function GetItems()
 //-------------- UI LAYOUT --------------------------------------------------------
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
+	local array<MissionIntelOption> templist;
 	super.InitScreen(InitController, InitMovie, InitName);
-
+	
 	// Move and resize list to accommodate label
 	List.OnItemDoubleClicked = OnPurchaseClicked;
 
@@ -43,6 +44,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// May need to remove this...
 	SetChooseResearchLayout();
 	PopulateData();
+	PopulateDataWithRefund(templist);
 }
 
 // This may be where we replace the items with the hacker rewards
