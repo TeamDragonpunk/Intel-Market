@@ -378,8 +378,12 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 			StartingConcealed=true;
 		else
 			StartingConcealed=false;
+
 		if(XComHQ.SoldierUnlockTemplates.Find('SquadSizeIIUnlock') != INDEX_NONE&&(string(IntelOption.IntelRewardName)~="ExtraSoldier_Intel"))
 			HasMaxSlots=true;
+		else
+			HasMaxSlots=false;
+
 		if(HasMaxSlots==false&&StartingConcealed==false&&(Screen.GetMission().PurchasedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1 && SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1) &&HasExclusives==false)
 			IOPSOut.AddItem(IntelOption);
 	}
