@@ -101,9 +101,9 @@ simulated function OnSellClicked(UIButton button)
 }
 
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
-simulated function DP_UIIntelMarketBuy(){	local DP_UIIntelMarket_Buy kScreen;	kScreen = Spawn(class'DP_UIIntelMarket_Buy', self); //Spawning the intel market buy screen.	`ScreenStack.Push(kScreen);	//Pushing the intel options screen to the Screen Stack.	kScreen.SelectedIntelOptions.length=0;	`log("-------------DOING THE BUY SCREEN-----------------",true,'Team Dragonpunk Intel Market');}
+simulated function DP_UIIntelMarketBuy(){	local DP_UIIntelMarket_Buy kScreen;	kScreen = Spawn(class'DP_UIIntelMarket_Buy', self);	`SCREENSTACK.Push(kScreen);	kScreen.SelectedIntelOptions.length=0;	`log("-------------DOING THE BUY SCREEN-----------------",true,'Team Dragonpunk Intel Market');}
 
-simulated function ExposeOLC(UIButton Button) // Triggerring the ExposeOLC functions on the correct UIMission screen that created this screen.
+simulated function ExposeOLC(UIButton Button) // Triggerring the ExposeOLC functions on the correct UIMission screen that created this screen
 {
 	local UIScreen MissionScreen;
 	MissionScreen=`ScreenStack.GetFirstInstanceOf(class'UIMission');
