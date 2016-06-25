@@ -8,10 +8,6 @@ var localized String IntelTotalLabel;
 
 var UIX2ResourceHeader			ResourceContainer;
 
-// List may not be needed
-//var UIList List;
-//var UIText OptionDescText;
-
 var UILargeButton ExitButton;
 var array<MissionIntelOption> SelectedIntelOptions;
 
@@ -20,7 +16,7 @@ var UIItemCard_HackingRewards HackingRewardCard;
 //----------------------------------------------------------------------------
 // MEMBERS
 
-//Creates the Screen/UI. From original BM_Buy class
+//Creates the Screen UI. From original BM_Buy class
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
 	local array<UIPanel> ItemCards;
@@ -35,10 +31,10 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	ItemCard.SetAlpha(0.001f);
 	ItemCard.SetVisible(false);
 	ListContainer.RemoveChild(ItemCard);
-	ResourceContainer = Spawn(class'UIX2ResourceHeader', self).InitResourceHeader('ResourceContainer');
+	ResourceContainer = Spawn(class'UIX2ResourceHeader', self).InitResourceHeader('ResourceContainer'); //Spawning the resource description bar
 	ResourceContainer.AnchorTopRight();
 	UpdateIntel();
-	HackingRewardCard=UIItemCard_HackingRewards(Spawn(class'UIItemCard_HackingRewards', ListContainer).InitItemCard('HackingItemCard'));
+	HackingRewardCard=UIItemCard_HackingRewards(Spawn(class'UIItemCard_HackingRewards', ListContainer).InitItemCard('HackingItemCard')); //Spawning the custom item card with pics and descriptions
 	HackingRewardCard.SetPosition(635,0);
 	HackingRewardCard.Show();
 	HackingRewardCard.PopulateIntelItemCard();
@@ -46,96 +42,85 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	HackingRewardCard.PopulateIntelItemCard(self.GetItemTemplate(0));
 	HackingRewardCard.SetInitialParameters();
 	HackingRewardCard.Show();
-	ExitButton = Spawn(class'UILargeButton', self);
+	ExitButton = Spawn(class'UILargeButton', self); //Spawning the button for going to squad select.
 	ExitButton.bAnimateOnInit = false;
 	ExitButton.InitLargeButton('ExitButton',"SQUAD" , "SELECT", OnStartMissionClicked);
 	ExitButton.AnchorBottomRight();
 	MC.BeginFunctionOp("SetGreeble");
 	MC.QueueString(class'UIAlert'.default.m_strBlackMarketFooterLeft);
 	MC.QueueString(class'UIAlert'.default.m_strBlackMarketFooterRight);
-//	MC.QueueString(class'UIAlert'.default.m_strBlackMarketLogoString);
 	MC.QueueString("GOBLIN BAZAAR");
 	MC.EndOp();
 	GetItems();
 	SelectedIntelOptions.Length=0;
-	PopulateData();
-	UpdateListParameters(self.List);
+	PopulateData(); //Populating the list 
+	UpdateListParameters(self.List);//fixing list colors and layout.
 }
 simulated function PopulateData()
 {
 	GetItems();
 	ResourceContainer.Show();
 	m_arrRefs.length=0;
-	PopulateDataWithRefund(SelectedIntelOptions);
+	PopulateDataWithRefund(SelectedIntelOptions);// Calling the function to populate the list correctly, passing the purchased(red,refundable) options.
 }
-simulated function OnStartMissionClicked(UIButton button)
+simulated function OnStartMissionClicked(UIButton button) //When clicking on the button to go to squad select.
 {
 	local DP_UIMission_Council MyScreen;
 	local DP_UIIntelMarket MyDPScreen;
-	//MyScreen=DP_UIMission_Council(`ScreenStack.GetFirstInstanceOf(class'UIMission'));
 	MyDPScreen=DP_UIIntelMarket(`ScreenStack.GetFirstInstanceOf(class'DP_UIIntelMarket'));
-	`SCREENSTACK.Pop(self);
-	`SCREENSTACK.PopFirstInstanceOfClass(Class'DP_UIIntelMarket');
-	BuyAndSaveIntelOptions();
+	`SCREENSTACK.Pop(self);//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
+	`SCREENSTACK.PopFirstInstanceOfClass(Class'DP_UIIntelMarket');//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
+	BuyAndSaveIntelOptions(); //Submit the actual intel options to the mission to take effect.
 	CloseScreen();
 	//MyDPScreen.CloseScreen();
-	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
+	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
 	if(MyDPScreen!=none)
 	{
-		MyDPScreen.ExposeOLC(button);
+		MyDPScreen.ExposeOLC(button); // Fire up the original functions from the UIMission screens,moving the player to the squad select screen.
 	}
 }
-function OnPurchasedAnIOPS(MissionIntelOption NewIntelO)
+function OnPurchasedAnIOPS(MissionIntelOption NewIntelO) //Called when clicking the buy or refund button (also activates on a double click on the list item itself)
 {
 	local array<string> strSplit;
 	local string strSearch;
 
-	if( CanAffordIntelOptionsAll(NewIntelO,true) )
+	if( CanAffordIntelOptionsAll(NewIntelO,true) ) //If you cant afford the option do nothing (will always be true on refundable ones), the bool input is for log output
 	{
 		PlaySFX("StrategyUI_Purchase_Item");
 		if(SelectedIntelOptions.Find('IntelRewardName',NewIntelO.IntelRewardName)==-1 &&MissionActive.Find('IntelRewardName',NewIntelO.IntelRewardName)==-1)
-		{
+		{	 // If it's not purchased already and not active already add it to the purchased options array.
 			`log("Can Affort Intel: "@GetIntelFriendlyName(NewIntelO),true,'Dragonpunk IntelMarket');
 			SelectedIntelOptions.AddItem(NewIntelO);
 		}
 		else
-		{
+		{	// If it's purchased already remove it from the purchased options array.
 			`log("Refunding Intel: "@GetIntelFriendlyName(NewIntelO),true,'Dragonpunk IntelMarket');
 			SelectedIntelOptions.RemoveItem(NewIntelO);
 		}	
-		/*strSplit=SplitString(GetIntelFriendlyName(NewIntelO)," ");
-		foreach strSplit(strSearch)
-		{
-			if("squad"~=strSearch||"squadwide"~=strSearch)
-			{
-				arrIntelItems.RemoveItem(NewIntelO);
-				break;
-			}	
-		}*/
-		
+		//Populate the data, will update the purchasable items on the function 
 		PopulateData();
 		XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();
+		//Updates the intel count on Resource bar on the top right corner of the screen.
 		UpdateIntel();
 	}
 }
-simulated function bool CanAffordIntelOptionsAll(MissionIntelOption IntelOption,optional bool Show=false)
+simulated function bool CanAffordIntelOptionsAll(MissionIntelOption IntelOption,optional bool Show=false) // A check if we can afford all the intel option, Show will determain if it would put out log statements.
 {
 	local MissionIntelOption tempIntelOption;
 	local int TotalCostRightNow,i;
-//	return (GetTotalIntelCost() <= GetAvailableIntel());
   	TotalCostRightNow=0;    
-	if(SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName)!=-1)   
+	if(SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName)!=-1)   //If it's an already purchased item we're trying to refund always return true.
 		return true;
                                      
-	for(i=0;i<SelectedIntelOptions.length;i++)
+	for(i=0;i<SelectedIntelOptions.length;i++) //Calculate the total cost of all the already purchased options and save it.
 	{
 		tempIntelOption=SelectedIntelOptions[i];
 		TotalCostRightNow=TotalCostRightNow+GetIntelCost(tempIntelOption);
 	}
-	if(show)
+	if(show) //log statement for debugging
 		`log("Current Intel Cost:"@GetIntelCost(IntelOption) @"Intel Options Cost:"@TotalCostRightNow @"Total Intel Cost:"@(TotalCostRightNow+GetIntelCost(IntelOption)),true,'Team Dragonpunk IntelMarket');
 	
-	return ((TotalCostRightNow+GetIntelCost(IntelOption)) <= GetAvailableIntel());
+	return ((TotalCostRightNow+GetIntelCost(IntelOption)) <= GetAvailableIntel()); //if the intel cost of the current option + the rest of the already purchased options is smaller than the total amount of intel return true, if not it will return false. 
 }
 simulated function CloseScreen()
 {
@@ -143,30 +128,14 @@ simulated function CloseScreen()
 	super.CloseScreen();
 }
 
-//Iterator uses to populate the UI (where is this iterated?)
-// We want to get almost all rewards for Intel Market
-// TODO: Perhaps filter out some rewards based on mission type or being too OP
-//simulated function SelectIntelItem(UIList ContainerList, int ItemIndex)
-//{
-//	local MissionIntelOption SelectedOption;
-//	local X2HackRewardTemplateManager HackRewardTemplateManager;
-//	local X2HackRewardTemplate OptionTemplate;
-	
-//	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
-//	SelectedOption = GetMission().IntelOptions[ItemIndex];
-//	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(SelectedOption.IntelRewardName);
-
-//	OptionDescText.SetText(OptionTemplate.GetDescription(none));
-//}
-
 simulated function UpdateIntel()
 {
 	local int iIntel;
 	local MissionIntelOption tempIntelOption;
 	local int TotalCostRightNow,i;
-//	return (GetTotalIntelCost() <= GetAvailableIntel());
+
   	TotalCostRightNow=0;                                                   
-	for(i=0;i<SelectedIntelOptions.length;i++)
+	for(i=0;i<SelectedIntelOptions.length;i++) //Calculate the total cost of all the already purchased options and save it.
 	{
 		tempIntelOption=SelectedIntelOptions[i];
 		TotalCostRightNow=TotalCostRightNow+GetIntelCost(tempIntelOption);
@@ -176,7 +145,7 @@ simulated function UpdateIntel()
 	ResourceContainer.ClearResources();
 	UpdateMonthlySupplies();
 	UpdateSupplies();
-	iIntel = class'UIUtilities_Strategy'.static.GetResource('Intel') -TotalCostRightNow;
+	iIntel = class'UIUtilities_Strategy'.static.GetResource('Intel') -TotalCostRightNow; // Prints out the left over intel if all the current purchased intel options were to be purchased fully and paid.
 	ResourceContainer.AddResource(Caps(class'UIUtilities_Strategy'.static.GetResourceDisplayName('Intel', iIntel)), class'UIUtilities_Text'.static.GetColoredText(String(iIntel), (iIntel > 0) ? eUIState_Normal : eUIState_Bad));
 	UpdateEleriumCrystals();
 	UpdateAlienAlloys();
@@ -189,7 +158,7 @@ simulated function UpdateIntel()
 //-------------- EVENT HANDLING --------------------------------------------------------
 
 //Manges the original BM_Buy logic for repopulating list
-simulated function OnPurchaseClicked(UIList kList, int itemIndex)
+simulated function OnPurchaseClicked(UIList kList, int itemIndex) //Activated on double clicked.
 {
 	local MissionIntelOption ThisSelectedIOP;
 	ThisSelectedIOP=(DP_UIInventory_ListItem(kList.ItemContainer.GetChildAt(ItemIndex)).ItemIntel);
@@ -197,7 +166,7 @@ simulated function OnPurchaseClicked(UIList kList, int itemIndex)
 		OnPurchasedAnIOPS(ThisSelectedIOP);
 }
 
-simulated function BuyAndSaveIntelOptions()
+simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel options.
 {
 	local XComGameStateHistory History;
 	local XComGameState NewGameState;
@@ -219,12 +188,13 @@ simulated function BuyAndSaveIntelOptions()
 	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
 	NewGameState.AddStateObject(MissionState);
 
-	// Save and buy the intel options, and add their tactical tags
+	//If you have any applied intel options add their tactical tags- backing out of squad select removes all intel options tactical tags, re-add them so they will be actually applied.
 	for(i=0;i<MissionState.PurchasedIntelOptions.length;i++)
 	{
 		IntelOption=MissionState.PurchasedIntelOptions[i];
 		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
 	}
+	// Save and buy the intel options, and add their tactical tags
 	for(i=0;i<SelectedIntelOptions.length;i++)
 	{
 		IntelOption=SelectedIntelOptions[i];
@@ -232,14 +202,14 @@ simulated function BuyAndSaveIntelOptions()
 		XComHQ.PayStrategyCost(NewGameState, IntelOption.Cost, XComHQ.MissionOptionScalars);
 		MissionState.PurchasedIntelOptions.AddItem(IntelOption);
 	}
-	if(SelectedIntelOptions.Length>0 ||MissionState.PurchasedIntelOptions.length>0)
+	if(SelectedIntelOptions.Length>0 ||MissionState.PurchasedIntelOptions.length>0) //Submit to history if we did something
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	else
 		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
 	SelectedIntelOptions.Length=0;
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();
 }
-simulated function array<MissionIntelOption> GetMissionPurchasedOptions()
+simulated function array<MissionIntelOption> GetMissionPurchasedOptions() //Getting the active options.
 {
 	local XComGameState_MissionSite MissionState;
 	local UIMission Screen;
@@ -248,22 +218,23 @@ simulated function array<MissionIntelOption> GetMissionPurchasedOptions()
 	MissionState = Screen.GetMission();
 	return MissionState.PurchasedIntelOptions;	
 }
-simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex)
+simulated function SelectedItemChanged(UIList ContainerList, int ItemIndex) //Activated when mousing over a list item
 {
 	local array<UIPanel> ItemCards;
 	local UIPanel Card;
 	local MissionIntelOption SelectedIOP;
 	local int i;
-	SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).ItemIntel;
+	SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(ItemIndex)).ItemIntel; //Getting the intel from the current moused over item.
 	super.SelectedItemChanged(ContainerList,ItemIndex);
 	`log(GetIntelItemTemplate(SelectedIOP).GetDescription(none),true,'Team Dragonpunk Goblin Bazaar');
 	ListContainer.RemoveChild(ItemCard);
 	HackingRewardCard.Show();
 	if(SelectedIOP.IntelRewardName!='')
-		HackingRewardCard.PopulateIntelItemCard(GetIntelItemTemplate(SelectedIOP),,SelectedIOP);
+		HackingRewardCard.PopulateIntelItemCard(GetIntelItemTemplate(SelectedIOP),,SelectedIOP); //Setting up the item card of the intel option
 	else
-		HackingRewardCard.SetNullParameters();
-	UpdateListParameters(ContainerList);
+		HackingRewardCard.SetNullParameters(); //if we have a null intel option (Labels for the types of items) just get the null parameters card- placeholder image.
+
+	UpdateListParameters(ContainerList); // Update the looks of all the items.
 }
 
 simulated function UpdateListParameters(UIList ContainerList)
@@ -271,52 +242,46 @@ simulated function UpdateListParameters(UIList ContainerList)
 	local MissionIntelOption SelectedIOP;
 	local int i;
 
-	for(i=0;i<ContainerList.ItemContainer.NumChildren();i++)
+	for(i=0;i<ContainerList.ItemContainer.NumChildren();i++) // Cycle through all the list items
 		{
-			SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).ItemIntel;
-			if((arrIntelItems.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1))
+			SelectedIOP=DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).ItemIntel; //get the intel option for each list item
+			if((arrIntelItems.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1)) //Deal with stuff that are purchasable
 			{
 				if(!CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==false)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==false)))
-				{
+				{	//if you can afford the intel item AND one of the two looks options arent correct- correct them.
 					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(true,"Cant Afford This Purchase");
 					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(true,"Cant Afford This Purchase");
 				}
 				else if(CanAffordIntelOptionsAll(SelectedIOP)&&((DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bDisabled==true)||(DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).bIsBad==true)))
-				{
+				{	//if you can't afford the intel item AND one of the two looks options arent correct- correct them.
 					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
 					DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetDisabled(false);
 				}
 			}
-			else if(SelectedIntelOptions.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1)
+			else if(SelectedIntelOptions.Find('IntelRewardName',SelectedIOP.IntelRewardName)!=-1) //If it's already purchased make sure we can click it to refund it.
 				DP_UIInventory_ListItem(ContainerList.ItemContainer.GetChildAt(i)).SetBad(false,"");
 
 		}	
 }
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
 
-//Repurpose this to get Hacker reward template and state
-//simulated function XComGameState_IntelMarket GetMarket()
-//{
-//	return class'UIUtilities_Strategy'.static.GetIntelMarket();
-//}
 
-// Override from parent class. Called during list population.
 // All our buttons should say "buy" or "buy for mission"
 simulated function String GetButtonString(int ItemIndex)
 {
 
-//		return m_strBuy;
 		return "BUY";
 }
-simulated function PickIntelOptions(XComGameState_MissionSite MissionState)
+simulated function PickIntelOptions(XComGameState_MissionSite MissionState) //Just in case a mission has no intel options (or you want to reroll) it will roll the intel options even if the template dosnt allow that in stock.
 {
 	local XComGameState NewGameState;
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
 	NewGameState.AddStateObject(MissionState);
-	MissionState.PickIntelOptions();
-	`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+	MissionState.PickIntelOptions(); //Roll the intel options
+	`XCOMHISTORY.AddGameStateToHistory(NewGameState);//submit to history
 }
-// Not sure if this gets the bought intel options, or ones available to purchase for the mission
+
+// Gets all the intel options available to purchase for the mission. filtering mutually exclusive rewards,purchased(red ones you purchase on that screen) ones and active ones(already paid for and active on the mission)
 simulated function array<MissionIntelOption> GetMissionIntelOptions()
 {
 //	return GetMission().IntelOptions;
@@ -342,7 +307,7 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 	//MissionState.GetShadowChamberStrings();
 	`log("Schedule name:"@(string(MissionState.SelectedMissionData.SelectedMissionScheduleName)));
 	XComHQ = class'UIUtilities_Strategy'.static.GetXComHQ();
-	for(k=0;k<MissionState.GeneratedMission.Mission.MissionSchedules.Length;k++)
+	for(k=0;k<MissionState.GeneratedMission.Mission.MissionSchedules.Length;k++) // Check all mission schedules for seeing if the squad starts concealed on that mission.
 	{
 		MissionMgr.GetMissionSchedule(MissionState.GeneratedMission.Mission.MissionSchedules[k],Schedule);
 		`log("Schedule"@k @"name:"@(string(Schedule.ScheduleID)));
@@ -351,22 +316,22 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 	}
 	if(Screen!=none)
 	{
-		if(Screen.GetMission().IntelOptions.Length==0)
+		if(Screen.GetMission().IntelOptions.Length==0) //Set up intel options for missions if they have none
 			PickIntelOptions(Screen.GetMission());
 		IOPS=Screen.GetMission().IntelOptions;
 	}
-	else if(Screen2!=none)
+	else if(Screen2!=none) //Get the movie screen from XCOM HQ Pres. , just in case we cant get the original one from the main screenstack. 
 	{
 		if(Screen2.GetMission().IntelOptions.Length==0)
-			PickIntelOptions(Screen2.GetMission());
+			PickIntelOptions(Screen2.GetMission());	//Set up intel options for missions if they have none
 		IOPS=Screen2.GetMission().IntelOptions;
 		Screen=Screen2;
 	}
 	`XCOMHISTORY.CleanupPendingGameState(NewGameState);
-	foreach IOPS(IntelOption)
+	foreach IOPS(IntelOption) //Go through all the intel options the mission has in it and check for mutually exclusives.
 	{
 		HasExclusives=false;
-		foreach Screen.GetMission().PurchasedIntelOptions(ExcIntelOption)
+		foreach Screen.GetMission().PurchasedIntelOptions(ExcIntelOption) //if the player has active options that are mutually exclusive flag that option so you wont be able to purchase it.
 		{
 			foreach GetIntelItemTemplate(ExcIntelOption).MutuallyExclusiveRewards(ExcIntelOptionName)
 			{
@@ -374,7 +339,7 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 					HasExclusives=true;
 			}
 		}
-		for(i=0;i<SelectedIntelOptions.length;i++)
+		for(i=0;i<SelectedIntelOptions.length;i++) //if the player has purchased(red,refundable) options that are mutually exclusive flag that option so you wont be able to purchase it.
 		{
 			ExcIntelOption=SelectedIntelOptions[i];
 			foreach GetIntelItemTemplate(ExcIntelOption).MutuallyExclusiveRewards(ExcIntelOptionName)
@@ -383,18 +348,18 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 					HasExclusives=true;
 			}
 		}
-		if(StartingConcealed&&(string(IntelOption.IntelRewardName)~="SquadConceal_Intel"||string(IntelOption.IntelRewardName)~="IndividualConceal_Intel"))
+		if(StartingConcealed&&(string(IntelOption.IntelRewardName)~="SquadConceal_Intel"||string(IntelOption.IntelRewardName)~="IndividualConceal_Intel")) // If we start with a concealed state on the mission and the current option is concealment of any kind- flag it
 			StartingConcealed=true;
 		else
 			StartingConcealed=false;
 
-		if(XComHQ.SoldierUnlockTemplates.Find('SquadSizeIIUnlock') != INDEX_NONE&&(string(IntelOption.IntelRewardName)~="ExtraSoldier_Intel"))
+		if(XComHQ.SoldierUnlockTemplates.Find('SquadSizeIIUnlock') != INDEX_NONE&&(string(IntelOption.IntelRewardName)~="ExtraSoldier_Intel")) // If the campaign has the second squad size upgrade already and the current option is to add a soldier- flag it (tested it on a STOCK campaign, dosnt add to the squad size on that case)
 			HasMaxSlots=true;
 		else
 			HasMaxSlots=false;
 
 		if(HasMaxSlots==false&&StartingConcealed==false&&(Screen.GetMission().PurchasedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1 && SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1) &&HasExclusives==false)
-			IOPSOut.AddItem(IntelOption);
+			IOPSOut.AddItem(IntelOption); //If the current one is flagged for concealment filtering,extra soldier filtering, mutually exclusive filtering OR is present in the already purchased(red,refundable) intel options or already an active(gray) option dont add it to the available intel options for that mission.
 	}
 	return IOPSOut;
 
@@ -420,30 +385,15 @@ simulated function X2HackRewardTemplate GetIntelItemTemplate(MissionIntelOption 
 //Sends the bought items to game to make changes. Will be replaced by IntelOptions mission code
 simulated function GetItems()
 {
-//	local XComGameState NewGameState;
-//	local XComGameState_IntelMarket IntelMarketState;
-
-//	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Update Tech Rushes");
-//	IntelMarketState = XComGameState_IntelMarket(NewGameState.CreateStateObject(class'XComGameState_IntelMarket', GetMarket().ObjectID));
-//	NewGameState.AddStateObject(IntelMarketState);
-//	IntelMarketState.UpdateTechRushItems(NewGameState);
-//	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
-
-//	XComHQ = class'UIUtilities_Strategy'.static.GetXComHQ();
-
-	// Repopulates Items from available list. Need to rewrite logic for Intel...
-	// Checkbox system doesn't remove already bought intel items...
-	// TODO: This is where we need to populate the list with unpurchased hacker rewards
-//	arrItems = GetMarket().GetForSaleList();
 	arrIntelItems = GetMissionIntelOptions();
 }
 
-simulated function AddResource(string label, string data)
+simulated function AddResource(string label, string data) //Add resource, copied from the UIAvengerHUD class, handles adding resource description for the resource tab on the top right corner of the screen.
 {
 	ResourceContainer.AddResource(label, data);
 }
 
-simulated function UpdateMonthlySupplies()
+simulated function UpdateMonthlySupplies() //copied from the UIAvengerHUD class
 {
 	local int iMonthly;
 	local string Monthly, Prefix;
@@ -455,7 +405,7 @@ simulated function UpdateMonthlySupplies()
 	AddResource(XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.MonthlyLabel, Monthly);
 }
 
-simulated function UpdateSupplies()
+simulated function UpdateSupplies()//copied from the UIAvengerHUD class
 {
 	local int iSupplies; 
 	local string Supplies, Prefix; 
@@ -467,7 +417,7 @@ simulated function UpdateSupplies()
 	AddResource(Caps(class'UIUtilities_Strategy'.static.GetResourceDisplayName('Supplies', iSupplies)), Supplies);
 }
 
-simulated function UpdateEleriumCrystals()
+simulated function UpdateEleriumCrystals()//copied from the UIAvengerHUD class
 {
 	local int iEleriumCrystals;
 
@@ -475,7 +425,7 @@ simulated function UpdateEleriumCrystals()
 	AddResource(XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.EleriumLabel, class'UIUtilities_Text'.static.GetColoredText(String(iEleriumCrystals), (iEleriumCrystals > 0) ? eUIState_Normal : eUIState_Bad));
 }
 
-simulated function UpdateAlienAlloys()
+simulated function UpdateAlienAlloys()//copied from the UIAvengerHUD class
 {
 	local int iAlloys;
 
@@ -483,7 +433,7 @@ simulated function UpdateAlienAlloys()
 	AddResource(XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.AlloysLabel, class'UIUtilities_Text'.static.GetColoredText(String(iAlloys), (iAlloys > 0) ? eUIState_Normal : eUIState_Bad));
 }
 
-simulated function UpdateScientistScore()
+simulated function UpdateScientistScore()//copied from the UIAvengerHUD class
 {
 	local XComGameState_HeadquartersXCom XComHQ;
 	local bool bBonusActive;
@@ -494,7 +444,7 @@ simulated function UpdateScientistScore()
 	bBonusActive = (NumSci > XComHQ.GetNumberOfScientists());
 	AddResource(XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.SciLabel, class'UIUtilities_Text'.static.GetColoredText(string(NumSci), bBonusActive ? eUIState_Good : eUIState_Normal));
 }
-simulated function UpdateEngineerScore()
+simulated function UpdateEngineerScore()//copied from the UIAvengerHUD class
 {
 	local XComGameState_HeadquartersXCom XComHQ;
 	local bool bBonusActive;
@@ -506,7 +456,7 @@ simulated function UpdateEngineerScore()
 	AddResource(XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.EngLabel, class'UIUtilities_Text'.static.GetColoredText(string(NumEng), bBonusActive ? eUIState_Good : eUIState_Normal));
 }
 
-simulated function UpdateResContacts()
+simulated function UpdateResContacts()//copied from the UIAvengerHUD class
 {
 	local XComGameState_HeadquartersXCom XComHQ;
 	local int iCurrentContacts, iTotalContacts;

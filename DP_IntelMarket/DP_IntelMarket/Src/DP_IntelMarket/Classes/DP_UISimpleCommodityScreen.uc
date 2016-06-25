@@ -62,33 +62,22 @@ simulated function PopulateData()
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 
 	List.ClearItems();
-	// May need to comment this out..
-//	PopulateItemCard();
+
 	
 	for(i = 0; i < arrIntelItems.Length; i++)
 	{
 		MyItem = none; 
 		Template = arrIntelItems[i];
 		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, GetButtonString(i), m_eStyle, ConfirmButtonX, ConfirmButtonY);
-//		MyItem=Spawn(class'UIMechaListItem', List.itemContainer).InitListItem();
-//		MyItem.UpdateDataButton("NOTHING HERE MOVE ALONG", GetButtonString(i), OnPurchaseClicked);
 	}
 
-//	if(List.ItemCount > 0)
-//	{
-//		List.SetSelectedIndex(0);
-//		if( bUseSimpleCard )
-//			PopulateSimpleCommodityCard(UIInventory_ListItem(List.GetItem(0)).ItemComodity, UIInventory_ListItem(List.GetItem(0)).ItemRef);
-//		else
-//			PopulateResearchCard(UIInventory_ListItem(List.GetItem(0)).ItemComodity, UIInventory_ListItem(List.GetItem(0)).ItemRef);
-//	}
 	if(List.ItemCount == 0 && m_strEmptyListTitle != "")
 	{
 		TitleHeader.SetText(m_strTitle, m_strEmptyListTitle);
 		SetCategory("");
 	}
 }
-simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOptions)
+simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOptions) //Populating the list with correct colors and types.
 {
 	local MissionIntelOption Template,ExtraTemplate;
 	local int i;
@@ -98,34 +87,33 @@ simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOpti
 
 	List.ClearItems();
 	MissionActive.Length=0;
-	// May need to comment this out..
-//	PopulateItemCard();
-  	MissionActive=Screen.GetMission().PurchasedIntelOptions;
 
-	if(MissionActive.Length>0)
+  	MissionActive=Screen.GetMission().PurchasedIntelOptions; //get all the purchased options that already are on the following mission
+
+	if(MissionActive.Length>0) //Creating the "Active Items:" Label item for the list
 	{
 		ExtraTemplate.IntelRewardName='';
-		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY); //Spawning the item
 		TempListItem=DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1));
 		TempListItem.MC.BeginFunctionOp("populateData");
 		TempListItem.MC.QueueString(TempListItem.GetColoredText("Active Items:"));
 		TempListItem.MC.QueueString(TempListItem.GetColoredText(""));
 		TempListItem.MC.EndOp();
 		TempListItem.SetText("Active Items:");
-		TempListItem.SetBad(True,"");
+		TempListItem.SetBad(True,""); //Graying out the list item and making it unavailable for clicking
 
 	}
 	for(i = 0; i < MissionActive.Length; i++)
 	{
 		Template = MissionActive[i];
-		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
-		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(True,"Already active, Can't refund");
-		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetDisabled(True,"Already active, Can't refund");
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY); //Spawning the item
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(True,"Already active, Can't refund"); //Graying out the list item and making it unavailable for clicking
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetDisabled(True,"Already active, Can't refund"); //Redding out the list item and making it unavailable for clicking-will only be red if NOT grayed out
 	}
 	if(SelectedOptions.Length>0)
 	{
 		ExtraTemplate.IntelRewardName='';
-		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY); //Spawning the item
 		TempListItem=DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1));
 		TempListItem.SetBad(True,"");
 		TempListItem.MC.BeginFunctionOp("populateData");
@@ -133,20 +121,19 @@ simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOpti
 		TempListItem.MC.QueueString(TempListItem.GetColoredText(""));
 		TempListItem.MC.EndOp();
 		TempListItem.SetText("Purchased Items:");
-		TempListItem.SetBad(True,"");
+		TempListItem.SetBad(True,""); //Graying out the list item and making it unavailable for clicking
 	}
 	for(i = 0; i < SelectedOptions.Length; i++)
 	{
 		Template = SelectedOptions[i];
-		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "REFUND", m_eStyle, ConfirmButtonX, ConfirmButtonY);
-		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(False,"");
-		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetDisabled(False,"");
-		//List.itemContainer.SwapChildren(List.itemContainer.NumChildren()-1,i);
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "REFUND", m_eStyle, ConfirmButtonX, ConfirmButtonY); //Spawning the item
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(False,""); //Making sure it's capabale of being clicked on
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetDisabled(False,""); //Making it red.
 	}
 	if(arrIntelItems.Length>0)
 	{
 		ExtraTemplate.IntelRewardName='';
-		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(ExtraTemplate,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY); //Spawning the item
 		TempListItem=DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1));
 		TempListItem.SetBad(True,"");
 		TempListItem.MC.BeginFunctionOp("populateData");
@@ -154,12 +141,12 @@ simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOpti
 		TempListItem.MC.QueueString(TempListItem.GetColoredText(""));
 		TempListItem.MC.EndOp();
 		TempListItem.SetText("Available Items:");
-		TempListItem.SetBad(True,"");
+		TempListItem.SetBad(True,""); //Graying out the list item and making it unavailable for clicking
 	}
 	for(i = 0; i < arrIntelItems.Length; i++)
 	{
 		Template = arrIntelItems[i];
-		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef,GetButtonString(i) , m_eStyle, ConfirmButtonX, ConfirmButtonY);
+		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef,GetButtonString(i) , m_eStyle, ConfirmButtonX, ConfirmButtonY); //Spawning the item
 	}
 	
 	if(List.ItemCount == 0 && m_strEmptyListTitle != "")
@@ -180,16 +167,10 @@ simulated function SelectIntelItem(UIList ContainerList, int ItemIndex)
 	local XComGameState_MissionSite MissionState;
 	
 	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
-	//SelectedOption = GetMission().IntelOptions[ItemIndex];
-	//MissionState = XComGameState_MissionSite(XCOMHISTORY.GetGameStateForObjectID(MissionRef.ObjectID));
-	//SelectedOption = MissionState.IntelOptions[ItemIndex];
-	//SelectedOption = XComGameState_MissionSite(`XCOMHISTORY.GetGameStateForObjectID(UIMission(Screen).MissionRef.ObjectID)).IntelOptions[ItemIndex];
-	//OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(SelectedOption.IntelRewardName);
 
-	//OptionDescText.SetText(OptionTemplate.GetDescription(none));
 }
 
-//simulated function int GetItemIndex(Commodity Item)
+
 simulated function int GetItemIndex(MissionIntelOption Item)
 {
 	local int i;
@@ -206,17 +187,7 @@ simulated function int GetItemIndex(MissionIntelOption Item)
 }
 
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
-//simulated function String GetItemString(int ItemIndex)
-//{
-//	if( ItemIndex > -1 && ItemIndex < arrItems.Length )
-//	{
-//		return arrItems[ItemIndex].Title;
-//	}
-//	else
-//	{
-//		return "";
-//	}
-//}
+
 simulated function MissionIntelOption GetIOPSItem(int ItemIndex)
 {
 	return 	arrIntelItems[ItemIndex];
@@ -266,29 +237,7 @@ simulated function String GetItemCostString(int ItemIndex)
 	}
 }
 
-//simulated function String GetItemReqString(int ItemIndex)
-//{
-//	if( ItemIndex > -1 && ItemIndex < arrItems.Length )
-//	{
-//		return class'UIUtilities_Strategy'.static.GetStrategyReqString(arrItems[ItemIndex].Requirements);
-//	}
-//	else
-//	{
-//		return "";
-//	}
-//}
 
-//simulated function String GetItemDurationString(int ItemIndex)
-//{
-//	if (ItemIndex > -1 && ItemIndex < arrItems.Length)
-//	{
-//		return class'UIUtilities_Text'.static.GetTimeRemainingString(arrItems[ItemIndex].OrderHours);
-//	}
-//	else
-//	{
-//		return "";
-//	}
-//}
 
 simulated function String GetItemDescString(int ItemIndex)
 {
@@ -324,7 +273,6 @@ simulated function bool CanAffordItem(int ItemIndex)
 {
 	if( ItemIndex > -1 && ItemIndex < arrIntelItems.Length )
 	{
-//		return XComHQ.CanAffordCommodity(arrItems[ItemIndex]);
 		return CanAffordIntelOptions(arrIntelItems[ItemIndex]);
 	}
 	else
@@ -334,7 +282,6 @@ simulated function bool CanAffordItem(int ItemIndex)
 }
 
 // Original logic that assumes player purchases all intel options at once.
-//simulated function bool CanAffordIntelOptions()
 simulated function bool CanAffordIntelOptions(MissionIntelOption IntelOption)
 {
 //	return (GetTotalIntelCost() <= GetAvailableIntel());
@@ -353,28 +300,11 @@ simulated function int GetIntelCost(MissionIntelOption IntelOption)
 {
 	return class'UIUtilities_Strategy'.static.GetCostQuantity(IntelOption.Cost, 'Intel');
 }
-
-//Gets the total cost of all intel options selected. Will not be used in BM type list
-//simulated function int GetTotalIntelCost()
-//{
-//	local MissionIntelOption IntelOption;
-//	local int TotalCost;
-
-//	foreach SelectedOptions(IntelOption)
-//	{
-//		TotalCost += class'UIUtilities_Strategy'.static.GetCostQuantity(IntelOption.Cost, 'Intel');
-//	}
-
-//	return TotalCost;
-//}
-
-// Not seeing where this is called in the code, so commenting out due to type Commodity
-// This is called in DP_UIInventory_ListItem. Not sure what it's checking against though
 simulated function bool MeetsItemReqs(int ItemIndex)
 {
 	if( ItemIndex > -1 && ItemIndex < arrIntelItems.Length )
 	{
-//		return XComHQ.MeetsCommodityRequirements(arrItems[ItemIndex]);
+
 		return true;
 	}
 	else
@@ -388,45 +318,11 @@ simulated function bool IsItemPurchased(int ItemIndex)
 	// Implement in subclasses
 	return false;
 }
-//simulated function bool ShouldShowCostPanel()
-//{
-//	return !IsInfoOnly() && GetItemCostString(iSelectedItem) != "";
-//}
-//
-//simulated function bool ShouldShowReqPanel()
-//{
-//	return !IsInfoOnly() && GetItemReqString(iSelectedItem) != "";
-//}
-//
-//simulated function bool ShouldShowDurationPanel()
-//{
-//	return !IsInfoOnly() && arrItems[iSelectedItem].OrderHours > 0;
-//}
-
-//simulated function EUIState GetDurationColor(int ItemIndex)
-//{
-//	return eUIState_Good;
-//}
-
-//simulated function bool HasButton()
-//{
-//	return m_bShowButton;
-//}
-
 simulated function String GetButtonString(int ItemIndex)
 {
 	return m_strBuy;
 }
 
-//simulated function EUIState GetMainColor()
-//{
-//	return m_eMainColor;
-//}
-
-//simulated function bool IsInfoOnly()
-//{
-//	return m_bInfoOnly;
-//}
 
 defaultproperties
 {
@@ -435,4 +331,5 @@ defaultproperties
 	m_eMainColor = eUIState_Normal
 	m_eStyle = eUIConfirmButtonStyle_Default //word button
 	ConfirmButtonX = 2
-}	ConfirmButtonY = 0
+	ConfirmButtonY = 0
+}

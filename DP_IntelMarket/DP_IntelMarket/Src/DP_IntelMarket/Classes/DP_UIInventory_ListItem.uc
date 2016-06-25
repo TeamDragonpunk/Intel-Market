@@ -15,33 +15,7 @@ var MissionIntelOption ItemIntel;
 var StateObjectReference ItemRef;
 var X2EncyclopediaTemplate XComDatabaseEntry;
 
-simulated function UIInventory_ListItem InitInventoryListItem(X2ItemTemplate InitTemplate, 
-															  int InitQuantity, 
-															  optional StateObjectReference InitItemRef, 
-															  optional string Confirm, 
-															  optional EUIConfirmButtonStyle InitConfirmButtonStyle = eUIConfirmButtonStyle_Default,
-															  optional int InitRightCol,
-															  optional int InitHeight)
-{
-	// Set data before calling super, so that it's available in the initialization. 
-	ItemTemplate = InitTemplate;
-	Quantity = InitQuantity;
-	ItemRef = InitItemRef;
-	ConfirmButtonStyle = InitConfirmButtonStyle;
-	InitListItem();
-
-	SetConfirmButtonStyle(ConfirmButtonStyle, Confirm, InitRightCol, InitHeight,OnClickConfirmButton, OnDoubleclickConfirmButton);
-
-	//Create all of the children before realizing, to be sure they can receive info. 
-	RealizeDisabledState();
-	RealizeBadState();
-	RealizeAttentionState();
-	RealizeGoodState();
-
-	//This is creating a type mismatch, but not sure where this is called...
-//	return self;
-}
-
+//Taken from the parent, switched the type so it would take in an intel option.
 simulated function InitInventoryListCommodity(MissionIntelOption initIntel, 
 											  optional StateObjectReference InitItemRef, 
 											  optional string Confirm, 
@@ -59,20 +33,6 @@ simulated function InitInventoryListCommodity(MissionIntelOption initIntel,
 
 	SetConfirmButtonStyle(ConfirmButtonStyle, Confirm, InitRightCol, InitHeight,OnClickConfirmButton, OnDoubleclickConfirmButton);
 
-	//Create all of the children before realizing, to be sure they can receive info. 
-	RealizeDisabledState();
-	RealizeBadState();
-	RealizeAttentionState();
-	RealizeGoodState();
-}
-
-simulated function InitInventoryListXComDatabase(X2EncyclopediaTemplate EntryTemplate)
-{
-	// Set data before calling super, so that it's available in the initialization. 
-	XComDatabaseEntry = EntryTemplate;
-
-	InitListItem();
-	
 	//Create all of the children before realizing, to be sure they can receive info. 
 	RealizeDisabledState();
 	RealizeBadState();
@@ -210,11 +170,11 @@ simulated function PopulateData(optional bool bRealizeDisabled)
 	{
 		MC.QueueString(GetColoredText(ItemTemplate.GetItemFriendlyName(ItemRef.ObjectID)));
 	}
-	else
+	else // Only change here- if you are a child of a DP_UISimpleCommodityScreen screen (like the buy screen) populate the list item correctly
 	{
 		OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntel.IntelRewardName);
 		if(OptionTemplate!=none)
-			MC.QueueString(GetColoredText(OptionTemplate.GetFriendlyName()));
+			MC.QueueString(GetColoredText(OptionTemplate.GetFriendlyName())); //Print the name on the list item.
 		else
 			MC.QueueString(GetColoredText(""));
 		ItemQuantity = GetColoredText("");
@@ -292,7 +252,7 @@ simulated function OnDoubleclickConfirmButton(UIButton Button)
 {
 	// do nothing
 }
-simulated function OnClickConfirmButton(UIButton Button)
+simulated function OnClickConfirmButton(UIButton Button) //When clicked call the purchasing option on the IntelMarket_buy screen. (the first one in the stack will always be the one containing this item)
 {
 	DP_UIIntelMarket_Buy(`ScreenStack.GetFirstInstanceOf(class'DP_UIIntelMarket_Buy')).OnPurchasedAnIOPS(ItemIntel);
 }
