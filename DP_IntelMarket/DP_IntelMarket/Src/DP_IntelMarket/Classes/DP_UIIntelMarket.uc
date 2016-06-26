@@ -58,8 +58,8 @@ simulated function BuildScreen()
 	LibraryPanel.MC.FunctionString("SetMenuQuote", "The Goblins Welcome You To Their Bazzar!");
 
 	LibraryPanel.MC.BeginFunctionOp("SetMenuInterest");
-	LibraryPanel.MC.QueueString("Testing with Shorter Text");
-	LibraryPanel.MC.QueueString("Using Shorter Text");
+	LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft("Guide"));
+	LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft("Purchased Options will last for 1 mission only"));
 	LibraryPanel.MC.EndOp();
 
 	Button1.OnClickedDelegate = OnBuyClicked;
@@ -96,7 +96,6 @@ simulated function OnBuyClicked(UIButton button)
 // If you change this title, then you'll need to create a new button delegate
 simulated function OnSellClicked(UIButton button)
 {
-	local DP_UIMission_Council MyScreen;
     CloseScreen();
 }
 
@@ -107,36 +106,37 @@ simulated function ExposeOLC(UIButton Button) // Triggerring the ExposeOLC funct
 {
 	local UIScreen MissionScreen;
 	MissionScreen=`ScreenStack.GetFirstInstanceOf(class'UIMission');
-	Switch(MissionScreen.class)
+	UIMission(MissionScreen).OnLaunchClicked(button);
+	/*Switch(MissionScreen.class)
 	{
-		case Class'DP_UIMission_AlienFacility':
-			DP_UIMission_AlienFacility(MissionScreen).ExposeOLC(Button);
+		case Class'UIMission_AlienFacility':
+			UIMission_AlienFacility(MissionScreen).ExposeOLC(Button);
 			break;
-		case Class'DP_UIMission_Council':
-			DP_UIMission_Council(MissionScreen).ExposeOLC(Button);
+		case Class' UIMission_Council':
+			 UIMission_Council(MissionScreen).ExposeOLC(Button);
 			break;
-		case Class'DP_UIMission_GoldenPath':
-			DP_UIMission_GoldenPath(MissionScreen).ExposeOLC(Button);
+		case Class' UIMission_GoldenPath':
+			 UIMission_GoldenPath(MissionScreen).ExposeOLC(Button);
 			break;
-		case Class'DP_UIMission_GOps':
-			DP_UIMission_GOps(MissionScreen).ExposeOLC(Button);
+		case Class' UIMission_GOps':
+			 UIMission_GOps(MissionScreen).ExposeOLC(Button);
 			break;
-		case Class'DP_UIMission_GPIntelOptions':
-			DP_UIMission_GPIntelOptions(MissionScreen).ExposeOLC(Button);
+		case Class' UIMission_GPIntelOptions':
+			 UIMission_GPIntelOptions(MissionScreen).ExposeOLC(Button);
 			break;
-		case Class'DP_UIMission_LandedUFO':
-			DP_UIMission_LandedUFO(MissionScreen).ExposeOLC(Button);
+		case Class' UIMission_LandedUFO':
+			 UIMission_LandedUFO(MissionScreen).ExposeOLC(Button);
 			break;
-		case Class'DP_UIMission_Retaliation':
-			DP_UIMission_Retaliation(MissionScreen).ExposeOLC(Button);
+		case Class' UIMission_Retaliation':
+			 UIMission_Retaliation(MissionScreen).ExposeOLC(Button);
 			break;
-		case Class'DP_UIMission_SupplyRaid':
-			DP_UIMission_SupplyRaid(MissionScreen).ExposeOLC(Button);
+		case Class' UIMission_SupplyRaid':
+			 UIMission_SupplyRaid(MissionScreen).ExposeOLC(Button);
 			break;
 		default:
 			break;
 
-	}	
+	}	*/
 }
 
 simulated function CloseScreen()

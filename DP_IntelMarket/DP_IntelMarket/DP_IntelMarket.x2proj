@@ -43,37 +43,13 @@
     <Content Include="Src\DP_IntelMarket\Classes\DP_UIInventory_ListItem.uc">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_AlienFacility.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_Council.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_Council_Replace.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_GoldenPath.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_GOps.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_GPIntelOptions.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_LandedUFO.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_Retaliation.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\DP_UIMission_SupplyRaid.uc">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Src\DP_IntelMarket\Classes\DP_UISimpleCommodityScreen.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\DP_IntelMarket\Classes\UIItemCard_HackingRewards.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\DP_IntelMarket\Classes\UIListener_UIMission_Swapper.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\DP_IntelMarket\Classes\X2DownloadableContentInfo_DP_IntelMarket.uc">
