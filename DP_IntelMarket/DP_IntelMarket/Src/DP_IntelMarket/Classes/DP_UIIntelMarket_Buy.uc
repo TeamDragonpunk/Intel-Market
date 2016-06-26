@@ -65,7 +65,6 @@ simulated function PopulateData()
 }
 simulated function OnStartMissionClicked(UIButton button) //When clicking on the button to go to squad select.
 {
-	local DP_UIMission_Council MyScreen;
 	local DP_UIIntelMarket MyDPScreen;
 	MyDPScreen=DP_UIIntelMarket(`ScreenStack.GetFirstInstanceOf(class'DP_UIIntelMarket'));
 	`SCREENSTACK.Pop(self);//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
