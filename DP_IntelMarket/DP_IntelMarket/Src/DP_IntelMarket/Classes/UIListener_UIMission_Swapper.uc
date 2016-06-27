@@ -18,6 +18,7 @@ event OnInit(UIScreen Screen)
 			h=UIMission(Screen).Button1.Height;	
 			text=UIMission(Screen).m_strLaunchMission;	
 			SetBad=UIMission(Screen).Button1.IsBad;
+			UIMission(Screen).Button1.OnClickedDelegate=OnLaunchClicked_Intel;
 			OnConfirm=false;
 		}
 		else
@@ -28,8 +29,10 @@ event OnInit(UIScreen Screen)
 			h=UIMission(Screen).ConfirmButton.Height;	
 			text=UIMission(Screen).m_strLaunchMission;	
 			SetBad=UIMission(Screen).ConfirmButton.IsBad;
+			UIMission(Screen).ConfirmButton.OnClickedDelegate=OnLaunchClicked_Intel;
 			OnConfirm=true;
 		}
+		/*
 		 `log("Screen class:"$string(Screen.class.name)@"x:"$x@",y:"$y@",w:"$w@",h:"$h@",text:"$text@",SetBad:"$SetBad,true,'Team Dragonpunk Intel Market');
 		if(OnConfirm)
 		{
@@ -51,6 +54,7 @@ event OnInit(UIScreen Screen)
 		w=ModifiedConfirmButton.Width;
 		h=ModifiedConfirmButton.Height;	
 		`log("Screen class:"$string(Screen.class.name)@"x:"$x@",y:"$y@",w:"$w@",h:"$h@",text:"$text@",SetBad:"$SetBad,true,'Team Dragonpunk Intel Market');
+		*/
 	}
 }
 
@@ -62,7 +66,6 @@ event OnReceiveFocus(UIScreen Screen)
 simulated public function OnLaunchClicked_Intel(UIButton button)
 {
 	local DP_UIIntelMarket kScreen;
-	//isuper.OnLaunchClicked(button);
 	kScreen = `SCREENSTACK.GetFirstInstanceOf(Class'UIMission').Spawn(class'DP_UIIntelMarket', `SCREENSTACK.GetFirstInstanceOf(Class'UIMission') ); //Pushing the Intel market screen instead of the regular squad select screen
 	`ScreenStack.Push(kScreen);
     `log("-------------DOING MY MISSION SCREEN NO OVERRIDE-----------------",true,'Team Dragonpunk Intel Market');

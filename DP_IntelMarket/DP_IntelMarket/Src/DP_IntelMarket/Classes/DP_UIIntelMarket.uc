@@ -9,6 +9,8 @@ var UIPanel LibraryPanel;
 var UIButton Button1, Button2, Button3;
 var UIImage ImageTarget;
 
+var UILargeButton ExitButton;
+
 //----------------------------------------------------------------------------
 // MEMBERS
 
@@ -48,6 +50,11 @@ simulated function BuildScreen()
 	Button3 = Spawn(class'UIButton', ButtonGroup);
 	Button3.SetResizeToText(false);
 	Button3.InitButton('Button2', "");
+	
+	ExitButton = Spawn(class'UILargeButton', self); //Spawning the button for going to squad select.
+	ExitButton.bAnimateOnInit = false;
+	ExitButton.InitLargeButton('ExitButton',"SQUAD" , "SELECT", OnStartMissionClicked);
+	ExitButton.AnchorBottomRight();
 
 	ImageTarget = Spawn(class'UIImage', LibraryPanel).InitImage('MarketMenuImage');
 	`log("m_strImage:"@m_strImage,true,'Team Dragonpunk POI Art');
@@ -100,7 +107,7 @@ simulated function OnSellClicked(UIButton button)
 }
 
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
-simulated function DP_UIIntelMarketBuy(){	local DP_UIIntelMarket_Buy kScreen;	kScreen = Spawn(class'DP_UIIntelMarket_Buy', self);	`SCREENSTACK.Push(kScreen);	kScreen.SelectedIntelOptions.length=0;	`log("-------------DOING THE BUY SCREEN-----------------",true,'Team Dragonpunk Intel Market');}
+simulated function DP_UIIntelMarketBuy(){	local DP_UIIntelMarket_Buy kScreen;	kScreen = Spawn(class'DP_UIIntelMarket_Buy', self);	ExitButton.hide();	`SCREENSTACK.Push(kScreen);	kScreen.SelectedIntelOptions.length=0;	`log("-------------DOING THE BUY SCREEN-----------------",true,'Team Dragonpunk Intel Market');}
 
 simulated function ExposeOLC(UIButton Button) // Triggerring the ExposeOLC functions on the correct UIMission screen that created this screen
 {
@@ -173,7 +180,13 @@ simulated function bool OnUnrealCommand(int cmd, int arg)
 	return bHandled || super.OnUnrealCommand(cmd, arg);
 }
 
-
+simulated function OnStartMissionClicked(UIButton button) //When clicking on the button to go to squad select.
+{
+	`SCREENSTACK.Pop(self);//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
+	CloseScreen();
+	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
+	ExposeOLC(button); // Fire up the original functions from the UIMission screens,moving the player to the squad select screen.
+}
 //==============================================================================
 
 defaultproperties
