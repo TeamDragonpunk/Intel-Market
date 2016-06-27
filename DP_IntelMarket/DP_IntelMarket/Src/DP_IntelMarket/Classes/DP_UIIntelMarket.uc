@@ -17,13 +17,43 @@ var UILargeButton ExitButton;
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
 	local XComGameState NewGameState;
-
+	local XComGameState_Unit Unit;
+	local int HackRewardIndex;
 	super.InitScreen(InitController, InitMovie, InitName);
 	BuildScreen();
 	self.SetAlpha(1);
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Trigger Event: On Black Market Open");
 	`XEVENTMGR.TriggerEvent('OnBlackMarketOpen', , , NewGameState);
 	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
+		
+	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Unit)
+	{
+		if(Unit.CurrentHackRewards.Length>0)
+			`log("Unit"@Unit.ObjectID @":");
+
+		for( HackRewardIndex = 0; HackRewardIndex < Unit.CurrentHackRewards.Length; ++HackRewardIndex )
+		{
+			`log(class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager().FindHackRewardTemplate(Unit.CurrentHackRewards[HackRewardIndex]).DataName);
+		}
+		if(Unit.CurrentHackRewards.Length>0)
+			`log("");
+	}
+	`log("Hack Rewards Active");
+	for(HackRewardIndex=0;HackRewardIndex<`XComHQ.TacticalGameplayTags.Length;HackRewardIndex++)
+	{
+		if(IsValidIntelItemTemplate(`XComHQ.TacticalGameplayTags[HackRewardIndex]))
+		{
+			`log(string(`XComHQ.TacticalGameplayTags[HackRewardIndex]));
+		}
+	}
+	`log("Hack Rewards Purchased");
+	for(HackRewardIndex=0;HackRewardIndex<UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions.Length;HackRewardIndex++)
+	{
+		if(IsValidIntelItemTemplate(UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions[HackRewardIndex].IntelRewardName))
+		{
+			`log(string(UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions[HackRewardIndex].IntelRewardName));
+		}
+	}
 }
 
 simulated function BuildScreen()
@@ -205,9 +235,10 @@ simulated function OnStartMissionClicked(UIButton button) //When clicking on the
 
 	for(i=0;i<XComHQ.TacticalGameplayTags.Length;i++)
 	{
+		HackRewardName=XComHQ.TacticalGameplayTags[i];
 		if(IsValidIntelItemTemplate(HackRewardName))
 		{
-			XComHQ.TacticalGameplayTags.RemoveItem(XComHQ.TacticalGameplayTags[i]);	
+			XComHQ.TacticalGameplayTags.RemoveItem(HackRewardName);	
 		}
 	}
 	for(i=0;i<MissionState.PurchasedIntelOptions.length;i++)

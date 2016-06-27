@@ -190,9 +190,10 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	
 	for(i=0;i<XComHQ.TacticalGameplayTags.Length;i++)
 	{
+		HackRewardName=XComHQ.TacticalGameplayTags[i];
 		if(IsValidIntelItemTemplate(HackRewardName))
 		{
-			XComHQ.TacticalGameplayTags.RemoveItem(XComHQ.TacticalGameplayTags[i]);	
+			XComHQ.TacticalGameplayTags.RemoveItem(HackRewardName);	
 		}
 	}	
 	//If you have any applied intel options add their tactical tags- backing out of squad select removes all intel options tactical tags, re-add them so they will be actually applied.
