@@ -182,10 +182,59 @@ simulated function bool OnUnrealCommand(int cmd, int arg)
 
 simulated function OnStartMissionClicked(UIButton button) //When clicking on the button to go to squad select.
 {
+	local XComGameStateHistory History;
+	local XComGameState NewGameState;
+	local XComGameState_HeadquartersXCom XComHQ;
+	local XComGameState_MissionSite MissionState;
+	local MissionIntelOption IntelOption;
+	local name HackRewardName;
+	local int i;
+	local UIMission Screen; 
+
+	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
+	History = `XCOMHISTORY;
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
+	
+	XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom'));
+	XComHQ = XComGameState_HeadquartersXCom(NewGameState.CreateStateObject(class'XComGameState_HeadquartersXCom', XComHQ.ObjectID));
+	NewGameState.AddStateObject(XComHQ);
+	
+	MissionState = Screen.GetMission();
+	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
+	NewGameState.AddStateObject(MissionState);
+
+	for(i=0;i<XComHQ.TacticalGameplayTags.Length;i++)
+	{
+		if(IsValidIntelItemTemplate(HackRewardName))
+		{
+			XComHQ.TacticalGameplayTags.RemoveItem(XComHQ.TacticalGameplayTags[i]);	
+		}
+	}
+	for(i=0;i<MissionState.PurchasedIntelOptions.length;i++)
+	{
+		IntelOption=MissionState.PurchasedIntelOptions[i];
+		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
+	}
+
+	if(MissionState.PurchasedIntelOptions.length>0) //Submit to history if we did something
+		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+	else
+		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
+	
+	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
 	`SCREENSTACK.Pop(self);//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
 	CloseScreen();
-	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
 	ExposeOLC(button); // Fire up the original functions from the UIMission screens,moving the player to the squad select screen.
+}
+
+simulated function bool IsValidIntelItemTemplate(name ItemIntelname)
+{
+	local X2HackRewardTemplateManager HackRewardTemplateManager;
+	local X2HackRewardTemplate OptionTemplate;
+	
+	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
+	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntelname);
+	return (OptionTemplate!=none);
 }
 //==============================================================================
 

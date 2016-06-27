@@ -174,6 +174,7 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	local MissionIntelOption IntelOption;
 	local UIMission Screen; 
 	local bool StartingConcealed;
+	local name HackRewardName;
     local int i,k;                       
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
@@ -186,7 +187,14 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	MissionState = Screen.GetMission();
 	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
 	NewGameState.AddStateObject(MissionState);
-
+	
+	for(i=0;i<XComHQ.TacticalGameplayTags.Length;i++)
+	{
+		if(IsValidIntelItemTemplate(HackRewardName))
+		{
+			XComHQ.TacticalGameplayTags.RemoveItem(XComHQ.TacticalGameplayTags[i]);	
+		}
+	}	
 	//If you have any applied intel options add their tactical tags- backing out of squad select removes all intel options tactical tags, re-add them so they will be actually applied.
 	for(i=0;i<MissionState.PurchasedIntelOptions.length;i++)
 	{
@@ -381,6 +389,17 @@ simulated function X2HackRewardTemplate GetIntelItemTemplate(MissionIntelOption 
 	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntel.IntelRewardName);
 	return OptionTemplate;
 }
+
+simulated function bool IsValidIntelItemTemplate(name ItemIntelname)
+{
+	local X2HackRewardTemplateManager HackRewardTemplateManager;
+	local X2HackRewardTemplate OptionTemplate;
+	
+	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
+	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntelname);
+	return (OptionTemplate!=none);
+}
+
 //Sends the bought items to game to make changes. Will be replaced by IntelOptions mission code
 simulated function GetItems()
 {
