@@ -218,8 +218,11 @@ simulated function OnStartMissionClicked(UIButton button) //When clicking on the
 	local XComGameState_MissionSite MissionState;
 	local MissionIntelOption IntelOption;
 	local name HackRewardName;
-	local int i;
+	local int i,X;
 	local UIMission Screen; 
+	local bool HasChanged;
+	local XComGameState_Unit Unit;
+	local array<string> AddedNames,AddedNames2;
 
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
@@ -232,26 +235,47 @@ simulated function OnStartMissionClicked(UIButton button) //When clicking on the
 	MissionState = Screen.GetMission();
 	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
 	NewGameState.AddStateObject(MissionState);
-
+	
+	class'X2CardManager'.static.GetCardManager().GetAllCardsInDeck('GuaranteedIntelPurchasedHackRewards',AddedNames);
+	class'X2CardManager'.static.GetCardManager().GetAllCardsInDeck('IntelPurchasedHackRewards',AddedNames2);
+	LogError();
+	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Unit)
+	{
+		NewGameState.AddStateObject(Unit);
+		for(i=0;i<Unit.CurrentHackRewards.Length;i++)
+		{
+			X=XComHQ.TacticalGameplayTags.Find(Unit.CurrentHackRewards[i]);
+			if(X!=-1)
+			{
+				XComHQ.TacticalGameplayTags.Removeitem(Unit.CurrentHackRewards[i]);
+				XComHQ.TacticalGameplayTags.Removeitem(class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager().FindHackRewardTemplate(Unit.CurrentHackRewards[i]).DataName);
+			}
+		}
+		Unit.CurrentHackRewards.Remove(0, Unit.CurrentHackRewards.Length);
+		Unit.CurrentHackRewards.Length=0;
+		HasChanged=true;	
+	}
+	LogError();
 	for(i=0;i<XComHQ.TacticalGameplayTags.Length;i++)
 	{
-		HackRewardName=XComHQ.TacticalGameplayTags[i];
-		if(IsValidIntelItemTemplate(HackRewardName))
+		if(IsValidIntelItemTemplate(`XComHQ.TacticalGameplayTags[i])||AddedNames.Find(string(`XComHQ.TacticalGameplayTags[i]))!=-1||AddedNames2.Find(string(`XComHQ.TacticalGameplayTags[i]))!=-1)
 		{
-			XComHQ.TacticalGameplayTags.RemoveItem(HackRewardName);	
+			XComHQ.TacticalGameplayTags.RemoveItem(`XComHQ.TacticalGameplayTags[i]);	
+			HasChanged=true;
 		}
 	}
 	for(i=0;i<MissionState.PurchasedIntelOptions.length;i++)
 	{
 		IntelOption=MissionState.PurchasedIntelOptions[i];
 		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
+		HasChanged=true;
 	}
-
-	if(MissionState.PurchasedIntelOptions.length>0) //Submit to history if we did something
+	LogError();
+	/*if(HasChanged) //Submit to history if we did something
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	else
-		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
-	
+		`XCOMHISTORY.CleanupPendingGameState(NewGameState);*/
+	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
 	`SCREENSTACK.Pop(self);//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
 	CloseScreen();
@@ -265,7 +289,45 @@ simulated function bool IsValidIntelItemTemplate(name ItemIntelname)
 	
 	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
 	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntelname);
-	return (OptionTemplate!=none);
+	return (OptionTemplate!=none && !OptionTemplate.bBadThing);
+}
+
+simulated function LogError()
+{
+	local XComGameState_Unit Unit;
+	local int HackRewardIndex;
+
+	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Unit)
+	{
+		if(Unit.CurrentHackRewards.Length>0)
+			`log("Unit"@Unit.ObjectID @":");
+
+		for( HackRewardIndex = 0; HackRewardIndex < Unit.CurrentHackRewards.Length; ++HackRewardIndex )
+		{
+			`log(class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager().FindHackRewardTemplate(Unit.CurrentHackRewards[HackRewardIndex]).DataName);
+			`log(string(Unit.CurrentHackRewards[HackRewardIndex]));
+		}
+		if(Unit.CurrentHackRewards.Length>0)
+			`log("");
+	}
+	`log("Hack Rewards Active");
+	for(HackRewardIndex=0;HackRewardIndex<`XComHQ.TacticalGameplayTags.Length;HackRewardIndex++)
+	{
+		if(IsValidIntelItemTemplate(`XComHQ.TacticalGameplayTags[HackRewardIndex]))
+		{
+			`log(string(`XComHQ.TacticalGameplayTags[HackRewardIndex]));
+		}
+	}
+	`log("");
+	`log("Hack Rewards Purchased");
+	for(HackRewardIndex=0;HackRewardIndex<UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions.Length;HackRewardIndex++)
+	{
+		if(IsValidIntelItemTemplate(UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions[HackRewardIndex].IntelRewardName))
+		{
+			`log(string(UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions[HackRewardIndex].IntelRewardName));
+		}
+	}
+	`log("");
 }
 //==============================================================================
 

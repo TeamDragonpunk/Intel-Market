@@ -173,9 +173,11 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	local XComGameState_MissionSite MissionState;
 	local MissionIntelOption IntelOption;
 	local UIMission Screen; 
-	local bool StartingConcealed;
+	local bool HasChanged;
 	local name HackRewardName;
-    local int i,k;                       
+    local int i,k,X;                       
+	local XComGameState_Unit Unit;
+	local array<string> AddedNames,AddedNames2;
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
@@ -187,20 +189,42 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	MissionState = Screen.GetMission();
 	MissionState = XComGameState_MissionSite(NewGameState.CreateStateObject(class'XComGameState_MissionSite', MissionState.ObjectID));
 	NewGameState.AddStateObject(MissionState);
-	
+	class'X2CardManager'.static.GetCardManager().GetAllCardsInDeck('GuaranteedIntelPurchasedHackRewards',AddedNames);
+	class'X2CardManager'.static.GetCardManager().GetAllCardsInDeck('IntelPurchasedHackRewards',AddedNames2);
+	LogError();
+
+	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Unit)
+	{
+		NewGameState.AddStateObject(Unit);
+		for(i=0;i<Unit.CurrentHackRewards.Length;i++)
+		{
+			X=XComHQ.TacticalGameplayTags.Find(Unit.CurrentHackRewards[i]);
+			if(X!=-1)
+			{
+				XComHQ.TacticalGameplayTags.Removeitem(Unit.CurrentHackRewards[i]);
+				XComHQ.TacticalGameplayTags.Removeitem(class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager().FindHackRewardTemplate(Unit.CurrentHackRewards[i]).DataName);
+			}
+		}
+		Unit.CurrentHackRewards.Remove(0, Unit.CurrentHackRewards.Length);
+		Unit.CurrentHackRewards.Length=0;
+		HasChanged=true;
+	}
+
 	for(i=0;i<XComHQ.TacticalGameplayTags.Length;i++)
 	{
-		HackRewardName=XComHQ.TacticalGameplayTags[i];
-		if(IsValidIntelItemTemplate(HackRewardName))
+		if(IsValidIntelItemTemplate(`XComHQ.TacticalGameplayTags[i])||AddedNames.Find(string(`XComHQ.TacticalGameplayTags[i]))!=-1||AddedNames2.Find(string(`XComHQ.TacticalGameplayTags[i]))!=-1)
 		{
-			XComHQ.TacticalGameplayTags.RemoveItem(HackRewardName);	
+			XComHQ.TacticalGameplayTags.RemoveItem(`XComHQ.TacticalGameplayTags[i]);	
+			HasChanged=true;
 		}
 	}	
+	LogError();
 	//If you have any applied intel options add their tactical tags- backing out of squad select removes all intel options tactical tags, re-add them so they will be actually applied.
 	for(i=0;i<MissionState.PurchasedIntelOptions.length;i++)
 	{
 		IntelOption=MissionState.PurchasedIntelOptions[i];
 		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
+		HasChanged=true;
 	}
 	// Save and buy the intel options, and add their tactical tags
 	for(i=0;i<SelectedIntelOptions.length;i++)
@@ -209,13 +233,55 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
 		XComHQ.PayStrategyCost(NewGameState, IntelOption.Cost, XComHQ.MissionOptionScalars);
 		MissionState.PurchasedIntelOptions.AddItem(IntelOption);
+		HasChanged=true;
 	}
-	if(SelectedIntelOptions.Length>0 ||MissionState.PurchasedIntelOptions.length>0) //Submit to history if we did something
+	
+	/*if(HasChanged) //Submit to history if we did something
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	else
-		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
+		`XCOMHISTORY.CleanupPendingGameState(NewGameState);*/
+	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	SelectedIntelOptions.Length=0;
+	LogError();
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();
+}
+
+simulated function LogError()
+{
+	local XComGameState_Unit Unit;
+	local int HackRewardIndex;
+
+	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Unit)
+	{
+		if(Unit.CurrentHackRewards.Length>0)
+			`log("Unit"@Unit.ObjectID @":");
+
+		for( HackRewardIndex = 0; HackRewardIndex < Unit.CurrentHackRewards.Length; ++HackRewardIndex )
+		{
+			`log(class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager().FindHackRewardTemplate(Unit.CurrentHackRewards[HackRewardIndex]).DataName);
+			`log(string(Unit.CurrentHackRewards[HackRewardIndex]));
+		}
+		if(Unit.CurrentHackRewards.Length>0)
+			`log("");
+	}
+	`log("Hack Rewards Active");
+	for(HackRewardIndex=0;HackRewardIndex<`XComHQ.TacticalGameplayTags.Length;HackRewardIndex++)
+	{
+		if(IsValidIntelItemTemplate(`XComHQ.TacticalGameplayTags[HackRewardIndex]))
+		{
+			`log(string(`XComHQ.TacticalGameplayTags[HackRewardIndex]));
+		}
+	}
+	`log("");
+	`log("Hack Rewards Purchased");
+	for(HackRewardIndex=0;HackRewardIndex<UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions.Length;HackRewardIndex++)
+	{
+		if(IsValidIntelItemTemplate(UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions[HackRewardIndex].IntelRewardName))
+		{
+			`log(string(UIMission(`ScreenStack.GetFirstInstanceOf(class'UIMission')).GetMission().PurchasedIntelOptions[HackRewardIndex].IntelRewardName));
+		}
+	}
+	`log("");
 }
 simulated function array<MissionIntelOption> GetMissionPurchasedOptions() //Getting the active options.
 {
@@ -398,7 +464,7 @@ simulated function bool IsValidIntelItemTemplate(name ItemIntelname)
 	
 	HackRewardTemplateManager = class'X2HackRewardTemplateManager'.static.GetHackRewardTemplateManager();
 	OptionTemplate = HackRewardTemplateManager.FindHackRewardTemplate(ItemIntelname);
-	return (OptionTemplate!=none);
+	return (OptionTemplate!=none &&!OptionTemplate.bBadThing);
 }
 
 //Sends the bought items to game to make changes. Will be replaced by IntelOptions mission code
