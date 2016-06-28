@@ -1,10 +1,13 @@
 // class UIBlackMarket_Buy extends UISimpleCommodityScreen;
-class DP_UIIntelMarket_Buy extends DP_UISimpleCommodityScreen;
+class DP_UIIntelMarket_Buy extends DP_UISimpleCommodityScreen config(DP_IntelOptions_Settings);
 
 var localized String IntelAvailableLabel;
 var localized String IntelOptionsLabel;
 var localized String IntelCostLabel;
 var localized String IntelTotalLabel;
+
+var config bool RampingIntelCosts;
+var config float IntelCostMultiplier;
 
 var UIX2ResourceHeader			ResourceContainer;
 
@@ -114,12 +117,12 @@ simulated function bool CanAffordIntelOptionsAll(MissionIntelOption IntelOption,
 	for(i=0;i<SelectedIntelOptions.length;i++) //Calculate the total cost of all the already purchased options and save it.
 	{
 		tempIntelOption=SelectedIntelOptions[i];
-		TotalCostRightNow=TotalCostRightNow+GetIntelCost(tempIntelOption);
+		TotalCostRightNow=TotalCostRightNow+ Round(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption));
 	}
 	if(show) //log statement for debugging
-		`log("Current Intel Cost:"@GetIntelCost(IntelOption) @"Intel Options Cost:"@TotalCostRightNow @"Total Intel Cost:"@(TotalCostRightNow+GetIntelCost(IntelOption)),true,'Team Dragonpunk IntelMarket');
+		`log("Current Intel Cost:"@ Round(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption)) @"Intel Options Cost:"@TotalCostRightNow @"Total Intel Cost:"@(TotalCostRightNow+(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption))),true,'Team Dragonpunk IntelMarket');
 	
-	return ((TotalCostRightNow+GetIntelCost(IntelOption)) <= GetAvailableIntel()); //if the intel cost of the current option + the rest of the already purchased options is smaller than the total amount of intel return true, if not it will return false. 
+	return ((TotalCostRightNow+ Round(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption))) <= GetAvailableIntel()); //if the intel cost of the current option + the rest of the already purchased options is smaller than the total amount of intel return true, if not it will return false. 
 }
 simulated function CloseScreen()
 {
@@ -137,7 +140,7 @@ simulated function UpdateIntel()
 	for(i=0;i<SelectedIntelOptions.length;i++) //Calculate the total cost of all the already purchased options and save it.
 	{
 		tempIntelOption=SelectedIntelOptions[i];
-		TotalCostRightNow=TotalCostRightNow+GetIntelCost(tempIntelOption);
+		TotalCostRightNow=TotalCostRightNow+ Round(GetIntelCostMultiplier()*GetRampingIntelCosts(true)*GetIntelCost(tempIntelOption));
 	}
 	
 
@@ -471,6 +474,49 @@ simulated function bool IsValidIntelItemTemplate(name ItemIntelname)
 simulated function GetItems()
 {
 	arrIntelItems = GetMissionIntelOptions();
+}
+
+static function bool GetIsRampingIntelCosts() 
+{
+	if ( class'UIListener_MCM_Options'.default.RampingIntelCosts != default.RampingIntelCosts && default.RampingIntelCosts==false ) 
+	{
+		return class'UIListener_MCM_Options'.default.RampingIntelCosts;
+	}
+	else 
+	{
+		return default.RampingIntelCosts;
+	}
+}
+static function float GetRampingIntelCosts(Optional bool PrintLog=false) 
+{
+	local XComGameState_HeadquartersAlien AlienHQ;
+	local float RampLevel;
+	local float MaxForce,StartingForce,Force;
+
+	AlienHQ = class'UIUtilities_Strategy'.static.GetAlienHQ(true);
+	MaxForce=AlienHQ.default.AlienHeadquarters_MaxForceLevel;
+	StartingForce=AlienHQ.default.AlienHeadquarters_StartingForceLevel;
+	Force=AlienHQ.ForceLevel;
+	RampLevel=(Force-StartingForce)/MaxForce;
+	if(!GetIsRampingIntelCosts())
+		RampLevel=0;
+
+	if(PrintLog)
+		`log("Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
+	
+	return 1.0f+RampLevel;
+
+}
+static function float GetIntelCostMultiplier() 
+{
+	if ( class'UIListener_MCM_Options'.default.IntelCostMultiplier>0.0f) 
+	{
+		return class'UIListener_MCM_Options'.default.IntelCostMultiplier;
+	}
+	else 
+	{
+		return default.IntelCostMultiplier;
+	}
 }
 
 simulated function AddResource(string label, string data) //Add resource, copied from the UIAvengerHUD class, handles adding resource description for the resource tab on the top right corner of the screen.
