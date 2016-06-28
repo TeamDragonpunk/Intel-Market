@@ -13,6 +13,7 @@ var UILargeButton ExitButton;
 
 //----------------------------------------------------------------------------
 // MEMBERS
+
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
 	local XComGameState NewGameState;
@@ -117,7 +118,7 @@ simulated function BuildScreen()
 simulated function OnReceiveFocus()
 {
 	super.OnReceiveFocus();
-	ExitButton.Show();
+	
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.NavHelp.ClearButtonHelp();
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.NavHelp.AddBackButton(CloseScreen);
 }
@@ -205,7 +206,7 @@ simulated function bool OnUnrealCommand(int cmd, int arg)
 		bHandled = false;
 		break;
 	}
-	
+
 	return bHandled || super.OnUnrealCommand(cmd, arg);
 }
 

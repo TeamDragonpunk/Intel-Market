@@ -42,9 +42,7 @@ simulated function SetIntelItemImages(optional X2HackRewardTemplate ItemTemplate
 simulated function SetIntelItemCost(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef,optional MissionIntelOption IntelOption)
 {
 	local string StrCost;
-	local float Cost;
-	Cost=Round(class'UIUtilities_Strategy'.static.GetCostQuantity(IntelOption.Cost, 'Intel')*class'DP_UIIntelMarket_Buy'.static.GetIntelCostMultiplier()*class'DP_UIIntelMarket_Buy'.static.GetRampingIntelCosts()); //Get the cost of the intel item.
-	StrCost= string(int(Cost));
+	StrCost= string(class'UIUtilities_Strategy'.static.GetCostQuantity(IntelOption.Cost, 'Intel')); //Get the cost of the intel item.
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString(m_strCostLabel); //Prints "Cost"
 	MC.QueueString(StrCost); //Prints the actual cost
