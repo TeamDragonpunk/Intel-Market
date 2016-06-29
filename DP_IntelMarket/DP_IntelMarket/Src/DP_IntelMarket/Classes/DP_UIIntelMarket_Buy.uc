@@ -181,6 +181,10 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
     local int i,k,X;                       
 	local XComGameState_Unit Unit;
 	local array<string> AddedNames,AddedNames2;
+	local float TotalMultiplier;
+	local StrategyCost FixedCost;
+	TotalMultiplier=GetIntelCostMultiplier()*GetRampingIntelCosts();
+
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
@@ -232,18 +236,20 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	// Save and buy the intel options, and add their tactical tags
 	for(i=0;i<SelectedIntelOptions.length;i++)
 	{
+		FixedCost=IntelOption.Cost;
+		FixedCost.ResourceCosts[0].Quantity=FixedCost.ResourceCosts[0].Quantity*TotalMultiplier;
 		IntelOption=SelectedIntelOptions[i];
 		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
-		XComHQ.PayStrategyCost(NewGameState, IntelOption.Cost, XComHQ.MissionOptionScalars);
+		XComHQ.PayStrategyCost(NewGameState, FixedCost , XComHQ.MissionOptionScalars);
 		MissionState.PurchasedIntelOptions.AddItem(IntelOption);
 		HasChanged=true;
 	}
 	
-	/*if(HasChanged) //Submit to history if we did something
+	if(HasChanged) //Submit to history if we did something
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	else
-		`XCOMHISTORY.CleanupPendingGameState(NewGameState);*/
-	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
+		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
+	//`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	SelectedIntelOptions.Length=0;
 	LogError();
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();

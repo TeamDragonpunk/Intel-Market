@@ -45,7 +45,12 @@ simulated function OnInit()
 	super.OnInit();	
 	PopulateData();
 }
-
+simulated function UIListItemString SetText2D(string NewText)
+{
+	Text = NewText;
+	SetHtmlText(class'UIUtilities_Text'.static.AddFontInfo(Text, false));
+	return self;
+}
 // Set bDisabled variable
 simulated function RealizeDisabledState()
 {
