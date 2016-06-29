@@ -1,13 +1,11 @@
 // class UIBlackMarket_Buy extends UISimpleCommodityScreen;
-class DP_UIIntelMarket_Buy extends DP_UISimpleCommodityScreen config(DP_IntelOptions_Settings);
+class DP_UIIntelMarket_Buy extends DP_UISimpleCommodityScreen;
+`include(DP_IntelMarket/Src/ModConfigMenuAPI/MCM_API_CfgHelpers.uci)
 
 var localized String IntelAvailableLabel;
 var localized String IntelOptionsLabel;
 var localized String IntelCostLabel;
 var localized String IntelTotalLabel;
-
-var config bool RampingIntelCosts;
-var config float IntelCostMultiplier;
 
 var UIX2ResourceHeader			ResourceContainer;
 
@@ -104,12 +102,14 @@ function OnPurchasedAnIOPS(MissionIntelOption NewIntelO) //Called when clicking 
 		XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();
 		//Updates the intel count on Resource bar on the top right corner of the screen.
 		UpdateIntel();
+		GetRampingIntelCosts(true);
 	}
 }
 simulated function bool CanAffordIntelOptionsAll(MissionIntelOption IntelOption,optional bool Show=false) // A check if we can afford all the intel option, Show will determain if it would put out log statements.
 {
 	local MissionIntelOption tempIntelOption;
 	local int TotalCostRightNow,i;
+	local float IntelOptionCost;
   	TotalCostRightNow=0;    
 	if(SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName)!=-1)   //If it's an already purchased item we're trying to refund always return true.
 		return true;
@@ -117,12 +117,13 @@ simulated function bool CanAffordIntelOptionsAll(MissionIntelOption IntelOption,
 	for(i=0;i<SelectedIntelOptions.length;i++) //Calculate the total cost of all the already purchased options and save it.
 	{
 		tempIntelOption=SelectedIntelOptions[i];
-		TotalCostRightNow=TotalCostRightNow+ Round(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption));
+		TotalCostRightNow=TotalCostRightNow+(GetIntelCost(tempIntelOption)*GetRampingIntelCosts()*GetIntelCostMultiplier());
 	}
+	IntelOptionCost=Round(GetRampingIntelCosts()*GetIntelCostMultiplier()*GetIntelCost(IntelOption));
 	if(show) //log statement for debugging
-		`log("Current Intel Cost:"@ Round(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption)) @"Intel Options Cost:"@TotalCostRightNow @"Total Intel Cost:"@(TotalCostRightNow+(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption))),true,'Team Dragonpunk IntelMarket');
+		`log("Current Intel Cost:"@IntelOptionCost @"Intel Options Cost:"@TotalCostRightNow @"Total Intel Cost:"@(TotalCostRightNow+IntelOptionCost) @"True Cost:"@GetIntelCost(IntelOption),true,'Team Dragonpunk IntelMarket');
 	
-	return ((TotalCostRightNow+ Round(GetIntelCostMultiplier()*GetRampingIntelCosts()*GetIntelCost(tempIntelOption))) <= GetAvailableIntel()); //if the intel cost of the current option + the rest of the already purchased options is smaller than the total amount of intel return true, if not it will return false. 
+	return ((TotalCostRightNow+IntelOptionCost) <= GetAvailableIntel()); //if the intel cost of the current option + the rest of the already purchased options is smaller than the total amount of intel return true, if not it will return false. 
 }
 simulated function CloseScreen()
 {
@@ -140,7 +141,7 @@ simulated function UpdateIntel()
 	for(i=0;i<SelectedIntelOptions.length;i++) //Calculate the total cost of all the already purchased options and save it.
 	{
 		tempIntelOption=SelectedIntelOptions[i];
-		TotalCostRightNow=TotalCostRightNow+ Round(GetIntelCostMultiplier()*GetRampingIntelCosts(true)*GetIntelCost(tempIntelOption));
+		TotalCostRightNow=TotalCostRightNow+Round(GetIntelCost(tempIntelOption)*GetRampingIntelCosts()*GetIntelCostMultiplier());
 	}
 	
 
@@ -178,13 +179,12 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	local UIMission Screen; 
 	local bool HasChanged;
 	local name HackRewardName;
-    local int i,k,X;                       
+	local float FinalMultiplier;
+    local int i,k,X;   
+	local StrategyCost FixedCost;                    
 	local XComGameState_Unit Unit;
 	local array<string> AddedNames,AddedNames2;
-	local float TotalMultiplier;
-	local StrategyCost FixedCost;
-	TotalMultiplier=GetIntelCostMultiplier()*GetRampingIntelCosts();
-
+	FinalMultiplier=GetRampingIntelCosts()*GetIntelCostMultiplier();
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
@@ -236,20 +236,23 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	// Save and buy the intel options, and add their tactical tags
 	for(i=0;i<SelectedIntelOptions.length;i++)
 	{
-		FixedCost=IntelOption.Cost;
-		FixedCost.ResourceCosts[0].Quantity=FixedCost.ResourceCosts[0].Quantity*TotalMultiplier;
 		IntelOption=SelectedIntelOptions[i];
+		FixedCost=IntelOption.Cost;
+		for(k=0;k<FixedCost.ResourceCosts.length;k++)
+		{
+			FixedCost.ResourceCosts[k].Quantity=Round(FixedCost.ResourceCosts[k].Quantity*FinalMultiplier);
+		}
 		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
-		XComHQ.PayStrategyCost(NewGameState, FixedCost , XComHQ.MissionOptionScalars);
+		XComHQ.PayStrategyCost(NewGameState, FixedCost, XComHQ.MissionOptionScalars);
 		MissionState.PurchasedIntelOptions.AddItem(IntelOption);
 		HasChanged=true;
 	}
 	
-	if(HasChanged) //Submit to history if we did something
+	/*if(HasChanged) //Submit to history if we did something
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	else
-		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
-	//`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
+		`XCOMHISTORY.CleanupPendingGameState(NewGameState);*/
+	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	SelectedIntelOptions.Length=0;
 	LogError();
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();
@@ -346,6 +349,38 @@ simulated function UpdateListParameters(UIList ContainerList)
 
 		}	
 }
+
+`MCM_CH_VersionChecker(class'DP_IntelOptions_Defaults'.default.VERSION,class'UIListener_MCM_Options'.default.CONFIG_VERSION)
+
+function bool GetIsRampingIntelCosts() 
+{
+	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts ,class'UIListener_MCM_Options'.default.RampingIntelCosts);
+}
+function float GetRampingIntelCosts(Optional bool PrintLog=false)  
+{
+	local XComGameState_HeadquartersAlien AlienHQ;
+	local float RampLevel;
+	local float MaxForce,StartingForce,Force;
+
+	AlienHQ = class'UIUtilities_Strategy'.static.GetAlienHQ(true);
+	MaxForce=AlienHQ.default.AlienHeadquarters_MaxForceLevel;
+	StartingForce=AlienHQ.default.AlienHeadquarters_StartingForceLevel;
+	Force=AlienHQ.ForceLevel;
+	RampLevel=(Force-StartingForce)/MaxForce;
+	if(!GetIsRampingIntelCosts())
+		RampLevel=0;
+
+	if(PrintLog)
+		`log("Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
+	
+	return 1.0f+RampLevel;
+
+}
+function float GetIntelCostMultiplier() 
+{
+	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier,class'UIListener_MCM_Options'.default.IntelCostMultiplier);
+}
+
 //-------------- GAME DATA HOOKUP --------------------------------------------------------
 
 
@@ -480,49 +515,6 @@ simulated function bool IsValidIntelItemTemplate(name ItemIntelname)
 simulated function GetItems()
 {
 	arrIntelItems = GetMissionIntelOptions();
-}
-
-static function bool GetIsRampingIntelCosts() 
-{
-	if ( class'UIListener_MCM_Options'.default.RampingIntelCosts != default.RampingIntelCosts && default.RampingIntelCosts==false ) 
-	{
-		return class'UIListener_MCM_Options'.default.RampingIntelCosts;
-	}
-	else 
-	{
-		return default.RampingIntelCosts;
-	}
-}
-static function float GetRampingIntelCosts(Optional bool PrintLog=false) 
-{
-	local XComGameState_HeadquartersAlien AlienHQ;
-	local float RampLevel;
-	local float MaxForce,StartingForce,Force;
-
-	AlienHQ = class'UIUtilities_Strategy'.static.GetAlienHQ(true);
-	MaxForce=AlienHQ.default.AlienHeadquarters_MaxForceLevel;
-	StartingForce=AlienHQ.default.AlienHeadquarters_StartingForceLevel;
-	Force=AlienHQ.ForceLevel;
-	RampLevel=(Force-StartingForce)/MaxForce;
-	if(!GetIsRampingIntelCosts())
-		RampLevel=0;
-
-	if(PrintLog)
-		`log("Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
-	
-	return 1.0f+RampLevel;
-
-}
-static function float GetIntelCostMultiplier() 
-{
-	if ( class'UIListener_MCM_Options'.default.IntelCostMultiplier>0.0f) 
-	{
-		return class'UIListener_MCM_Options'.default.IntelCostMultiplier;
-	}
-	else 
-	{
-		return default.IntelCostMultiplier;
-	}
 }
 
 simulated function AddResource(string label, string data) //Add resource, copied from the UIAvengerHUD class, handles adding resource description for the resource tab on the top right corner of the screen.

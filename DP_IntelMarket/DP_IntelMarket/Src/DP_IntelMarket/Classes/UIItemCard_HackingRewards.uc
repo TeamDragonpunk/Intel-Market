@@ -1,6 +1,7 @@
 // This is an Unreal Script
                            
 class UIItemCard_HackingRewards extends UIItemCard;
+`include(DP_IntelMarket/Src/ModConfigMenuAPI/MCM_API_CfgHelpers.uci)
 
 
 simulated function PopulateIntelItemCard(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef,optional MissionIntelOption IntelOption) //Populating the card with the right into, mostly copy pasted from parent.
@@ -42,9 +43,9 @@ simulated function SetIntelItemImages(optional X2HackRewardTemplate ItemTemplate
 simulated function SetIntelItemCost(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef,optional MissionIntelOption IntelOption)
 {
 	local string StrCost;
-	local float Cost;
-	Cost=Round(class'UIUtilities_Strategy'.static.GetCostQuantity(IntelOption.Cost, 'Intel')*class'DP_UIIntelMarket_Buy'.static.GetIntelCostMultiplier()*class'DP_UIIntelMarket_Buy'.static.GetRampingIntelCosts()); //Get the cost of the intel item.
-	StrCost= string(int(Cost));
+	local int Cost;
+	Cost=Round(class'UIUtilities_Strategy'.static.GetCostQuantity(IntelOption.Cost, 'Intel')*GetIntelCostMultiplier()*GetRampingIntelCosts()); //Get the cost of the intel item.
+	StrCost= string((Cost));
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString(m_strCostLabel); //Prints "Cost"
 	MC.QueueString(StrCost); //Prints the actual cost
@@ -80,4 +81,35 @@ simulated function SetNullParameters() //Easy setting of parameters for null ite
 	MC.QueueString(""); //Should print "requirements", leave empty for this
 	MC.QueueString(""); //Should print the actual requirements, leave empty for this
 	MC.EndOp();
+}
+
+`MCM_CH_VersionChecker(class'DP_IntelOptions_Defaults'.default.VERSION,class'UIListener_MCM_Options'.default.CONFIG_VERSION)
+
+function bool GetIsRampingIntelCosts() 
+{
+	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts ,class'UIListener_MCM_Options'.default.RampingIntelCosts);
+}
+function float GetRampingIntelCosts(Optional bool PrintLog=false) 
+{
+	local XComGameState_HeadquartersAlien AlienHQ;
+	local float RampLevel;
+	local float MaxForce,StartingForce,Force;
+
+	AlienHQ = class'UIUtilities_Strategy'.static.GetAlienHQ(true);
+	MaxForce=AlienHQ.default.AlienHeadquarters_MaxForceLevel;
+	StartingForce=AlienHQ.default.AlienHeadquarters_StartingForceLevel;
+	Force=AlienHQ.ForceLevel;
+	RampLevel=(Force-StartingForce)/MaxForce;
+	if(!GetIsRampingIntelCosts())
+		RampLevel=0;
+
+	if(PrintLog)
+		`log("Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
+	
+	return 1.0f+RampLevel;
+
+}
+function float GetIntelCostMultiplier() 
+{
+	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier,class'UIListener_MCM_Options'.default.IntelCostMultiplier);
 }

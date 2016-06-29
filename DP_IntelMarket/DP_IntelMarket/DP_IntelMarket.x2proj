@@ -25,9 +25,6 @@
     <Content Include="Config\XComDP_IntelOptions_Defaults.ini">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Config\XComDP_IntelOptions_Settings.ini">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Config\XComGameData.ini">
       <SubType>Content</SubType>
     </Content>

@@ -75,23 +75,32 @@ simulated function LoadSavedSettings()
 		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
 		if(DPIO_StateObject != none)
 		{
+			
 			RampingIntelCosts=DPIO_StateObject.RampingIntelCosts;
-			IntelCostMultiplier=DPIO_StateObject.IntelCostMultiplier;
+			if(IntelCostMultiplier<=0.0f)
+				IntelCostMultiplier=DPIO_StateObject.IntelCostMultiplier;
+			else
+			{
+				NewGameState=class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding Options Component");
+				NewGameState.AddStateObject(DPIO_StateObject);
+				DPIO_StateObject.IntelCostMultiplier=`MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier,IntelCostMultiplier); 
+				`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+			}	
 		}
 		else
 		{
 			NewGameState=class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding Options Component");
 			DPIO_StateObject = XComGameState_DPIO_Options(NewGameState.CreateStateObject(class'XComGameState_DPIO_Options'));
 			
-			DPIO_StateObject.RampingIntelCosts=class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts;
-			DPIO_StateObject.IntelCostMultiplier=class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier;
+			DPIO_StateObject.RampingIntelCosts=`MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts,RampingIntelCosts); 
+			DPIO_StateObject.IntelCostMultiplier=`MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier,IntelCostMultiplier); 
 		
 			CampaignSettingsStateObject.AddComponentObject(DPIO_StateObject);
 			NewGameState.AddStateObject(DPIO_StateObject);
 			//NewGameState.AddStateObject(CampaignSettingsStateObject);
 			
-			RampingIntelCosts = class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts;
-			IntelCostMultiplier = class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier;
+			RampingIntelCosts = `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts,RampingIntelCosts); 
+			IntelCostMultiplier =`MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier,IntelCostMultiplier); 
 			
 			`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 		}
