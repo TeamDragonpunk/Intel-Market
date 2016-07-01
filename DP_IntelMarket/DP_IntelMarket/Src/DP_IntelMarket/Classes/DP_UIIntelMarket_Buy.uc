@@ -371,7 +371,7 @@ function float GetRampingIntelCosts(Optional bool PrintLog=false)
 		RampLevel=0;
 
 	if(PrintLog)
-		`log("Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
+		`log("Total Multiplier:"@(GetIntelCostMultiplier()*(1+Ramplevel))@"Base Cost Multiplier:"@GetIntelCostMultiplier() @"Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
 	
 	return 1.0f+RampLevel;
 
