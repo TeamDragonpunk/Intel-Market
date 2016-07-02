@@ -31,6 +31,9 @@
     <Content Include="Content\DP_PlaceholderPOI.upk">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Localization\DP_IntelMarket.int">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="ReadMe.txt" />
     <Content Include="ModPreview.jpg" />
     <Content Include="Config\XComEditor.ini" />

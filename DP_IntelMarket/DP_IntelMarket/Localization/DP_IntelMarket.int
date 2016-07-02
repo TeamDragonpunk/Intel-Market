@@ -1,0 +1,17 @@
+
+[DP_UIIntelMarket_Buy]
+TutorialTitleArray[0]=Test 0
+TutorialTitleArray[1]=Test 1
+TutorialTitleArray[2]=Test 2
+
+TutorialTextArray[0]=Test Text 0
+TutorialTextArray[1]=Test Text 1
+TutorialTextArray[2]=Test Text 2
+
+TutorialImageArray[0]=img:///DP_PlaceholderPOI.POI_GoblinBazaar
+TutorialImageArray[1]=img:///DP_PlaceholderPOI.POI_GoblinBazaar
+TutorialImageArray[2]=img:///DP_PlaceholderPOI.POI_GoblinBazaar
+
+
+[DP_UIIntelMarket]
+m_strImage=img:///UILibrary_StrategyImages.X2StrategyMap.POI_BlackMarket

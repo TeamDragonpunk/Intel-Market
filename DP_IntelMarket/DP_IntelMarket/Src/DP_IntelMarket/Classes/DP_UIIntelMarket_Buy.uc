@@ -1,5 +1,6 @@
 // class UIBlackMarket_Buy extends UISimpleCommodityScreen;
 class DP_UIIntelMarket_Buy extends DP_UISimpleCommodityScreen;
+
 `include(DP_IntelMarket/Src/ModConfigMenuAPI/MCM_API_CfgHelpers.uci)
 
 var localized String IntelAvailableLabel;
@@ -14,6 +15,10 @@ var array<MissionIntelOption> SelectedIntelOptions;
 
 var UIItemCard_HackingRewards HackingRewardCard;
 
+var int PageNumber;
+var localized array<string> TutorialTitleArray;
+var localized array<string> TutorialTextArray;
+var localized array<string> TutorialImageArray;
 //----------------------------------------------------------------------------
 // MEMBERS
 
@@ -27,6 +32,24 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	m_strTitle = ""; //Clear the header out intentionally. 	.
 	m_arrRefs.length=0;
 	super.InitScreen(InitController, InitMovie, InitName);
+	InitS();
+	/*CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	if(CampaignSettingsStateObject!=none)
+	{
+		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+		if(DPIO_StateObject != none )
+		{
+			if(DPIO_StateObject.DontShowTutorial==false)
+				OpenTutorial();
+		}
+	}*/
+}
+simulated function InitS()
+{
+	local array<UIPanel> ItemCards;
+	local UIPanel Card;
+	local object thisObj;
+
 	SetBlackMarketLayout();
 	ItemCard.PopulateData(" "," "," ","");
 	ItemCard.SetAlpha(0.001f);
@@ -55,7 +78,12 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	GetItems();
 	SelectedIntelOptions.Length=0;
 	PopulateData(); //Populating the list 
-	UpdateListParameters(self.List);//fixing list colors and layout.
+	UpdateListParameters(List);//fixing list colors and layout.
+	PageNumber=0;
+	OpenTutorial();
+	`log("Doing Tutorial",true,'Team Dragonpunk');
+	`log("title:"@TutorialTitleArray[PageNumber] @"Text:"@TutorialTextArray[PageNumber] @"image:"@TutorialImageArray[PageNumber] ,true,'Team Dragonpunk');
+
 }
 simulated function PopulateData()
 {
@@ -159,6 +187,84 @@ simulated function UpdateIntel()
 }
 
 //-------------- EVENT HANDLING --------------------------------------------------------
+simulated function OpenTutorial()
+{
+	local TDialogueBoxData  DialogData;
+
+	DialogData.eType       = eDialog_Normal;
+	DialogData.strTitle	   = TutorialTitleArray[PageNumber];
+	DialogData.strText     = `XEXPAND.ExpandString(TutorialTextArray[PageNumber]); 
+	DialogData.fnCallback  = OnTutorialButtonClickedCallback;
+	DialogData.strImagePath=TutorialImageArray[PageNumber];
+
+	DialogData.strAccept = class'UIUtilities_Text'.default.m_strGenericContinue;
+	DialogData.strCancel = class'UIUtilities_Text'.default.m_strGenericBack;
+	`log("Doing Tutorial",true,'Team Dragonpunk');
+	`log("title:"@TutorialTitleArray[PageNumber] @"Text:"@TutorialTextArray[PageNumber] @"image:"@TutorialImageArray[PageNumber] ,true,'Team Dragonpunk');
+	UIMission(`SCREENSTACK.GetFirstInstanceOf(class'UIMission')).Movie.Pres.UIRaiseDialog(DialogData);
+}
+simulated public function OnTutorialButtonClickedCallback(eUIAction eAction)
+{
+	local XComGameState_CampaignSettings CampaignSettingsStateObject;
+	local XComGameState_DPIO_Options DPIO_StateObject;
+	local XComGameState NewGameState;
+
+	if( eAction == eUIAction_Accept )
+	{
+		PageNumber++;
+		if(PageNumber<TutorialTitleArray.Length)
+		{
+			OpenTutorial();
+			return;
+		}
+		else if(PageNumber==TutorialTitleArray.Length)
+		{
+			NewGameState=class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Changing popup");
+			CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+			if(CampaignSettingsStateObject!=none)
+			{
+				DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+				if(DPIO_StateObject != none)
+				{
+					DPIO_StateObject.DontShowTutorial=true;
+					NewGameState.AddStateObject(DPIO_StateObject);
+					`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+				}
+			}
+			PageNumber=0;
+			return;
+		}
+		
+		else
+		{
+			PageNumber=0;
+			return;
+		}	
+	}
+	else
+	{
+		if(PageNumber==TutorialTitleArray.Length-1)
+		{
+			if(CampaignSettingsStateObject!=none)
+			{
+				DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+				if(DPIO_StateObject != none)
+				{
+					DPIO_StateObject.DontShowTutorial=true;
+					NewGameState.AddStateObject(DPIO_StateObject);
+					`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+				}
+			}
+			PageNumber=0;
+			return;
+		}
+		PageNumber--;
+		if(PageNumber>=0 &&PageNumber<TutorialTitleArray.Length )
+			OpenTutorial();
+		else
+			PageNumber=0;
+	}
+}
 
 //Manges the original BM_Buy logic for repopulating list
 simulated function OnPurchaseClicked(UIList kList, int itemIndex) //Activated on double clicked.
