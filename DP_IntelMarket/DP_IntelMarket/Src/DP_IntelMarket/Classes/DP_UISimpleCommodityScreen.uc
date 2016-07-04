@@ -107,8 +107,13 @@ simulated function PopulateDataWithRefund(array<MissionIntelOption> SelectedOpti
 	{
 		Template = MissionActive[i];
 		Spawn(class'DP_UIInventory_ListItem', List.itemContainer).InitInventoryListCommodity(Template,Screen.MissionRef, "", m_eStyle, ConfirmButtonX, ConfirmButtonY); //Spawning the item
+		TempListItem=DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1));
 		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetBad(True,"Already active, Can't refund"); //Graying out the list item and making it unavailable for clicking
 		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).SetDisabled(True,"Already active, Can't refund"); //Redding out the list item and making it unavailable for clicking-will only be red if NOT grayed out
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).MC.FunctionVoid("onReceiveFocus");
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).OnReceiveFocus();	
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).MC.FunctionVoid("onLoseFocus");
+		DP_UIInventory_ListItem(List.itemContainer.GetChildAt(List.itemContainer.NumChildren()-1)).OnLoseFocus();	
 	}
 	if(SelectedOptions.Length>0)
 	{

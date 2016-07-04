@@ -1,17 +1,20 @@
 
 [DP_UIIntelMarket_Buy]
-TutorialTitleArray[0]=Test 0
-TutorialTitleArray[1]=Test 1
-TutorialTitleArray[2]=Test 2
+TutorialTitleArray[0]="Test 0"
+TutorialTitleArray[1]="Test 1"
+TutorialTitleArray[2]="Test 2"
+TutorialTitleArray[3]="Should Show Again?"
 
-TutorialTextArray[0]=Test Text 0
-TutorialTextArray[1]=Test Text 1
-TutorialTextArray[2]=Test Text 2
+TutorialTextArray[0]="Test Text 02---------------------------------------------------2-------------------------------------------------"
+TutorialTextArray[1]="Test Text 12---------------------------------------------------2-------------------------------------------------"
+TutorialTextArray[2]="Test Text 22---------------------------------------------------2-------------------------------------------------"
+TutorialTextArray[3]="Should this tutorial be shown again next time?"
 
-TutorialImageArray[0]=img:///DP_PlaceholderPOI.POI_GoblinBazaar
-TutorialImageArray[1]=img:///DP_PlaceholderPOI.POI_GoblinBazaar
-TutorialImageArray[2]=img:///DP_PlaceholderPOI.POI_GoblinBazaar
+TutorialImageArray[0]="img:///DP_PlaceholderPOI.POI_GoblinBazaar"
+TutorialImageArray[1]="img:///DP_PlaceholderPOI.Pic_2"
+TutorialImageArray[2]="img:///DP_PlaceholderPOI.Pic1"
+TutorialImageArray[3]="img:///DP_PlaceholderPOI.POI_GoblinBazaar"
 
 
 [DP_UIIntelMarket]
-m_strImage=img:///UILibrary_StrategyImages.X2StrategyMap.POI_BlackMarket
+m_strImage="img:///UILibrary_StrategyImages.X2StrategyMap.POI_BlackMarket"
