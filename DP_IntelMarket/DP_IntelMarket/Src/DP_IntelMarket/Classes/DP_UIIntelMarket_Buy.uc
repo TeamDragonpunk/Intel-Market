@@ -1,4 +1,3 @@
-// class UIBlackMarket_Buy extends UISimpleCommodityScreen;
 class DP_UIIntelMarket_Buy extends DP_UISimpleCommodityScreen;
 
 `include(DP_IntelMarket/Src/ModConfigMenuAPI/MCM_API_CfgHelpers.uci)
@@ -77,11 +76,10 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
 		if(DPIO_StateObject != none )
 		{
-			if(DPIO_StateObject.DontShowTutorial==false)
+			if(DPIO_StateObject.ShowTutorial)
 			{
 				TutScreen=Spawn(class'UITutorialScreen',self);
-				TutScreen.InitArrays(TutorialTitleArray,TutorialTextArray,TutorialImageArray);
-				TutScreen.BuildScreen();
+				TutScreen.BuildScreen(TutorialTitleArray,TutorialTextArray,TutorialImageArray);
 				`ScreenStack.Push(TutScreen);	
 			}
 		}
@@ -391,6 +389,18 @@ simulated function UpdateListParameters(UIList ContainerList)
 
 function bool GetIsRampingIntelCosts() 
 {
+	local XComGameState_CampaignSettings CampaignSettingsStateObject;
+	local XComGameState_DPIO_Options DPIO_StateObject;
+
+	CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+    if(CampaignSettingsStateObject!=none)
+	{
+		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+		if(DPIO_StateObject != none)
+		{
+			return DPIO_StateObject.RampingIntelCosts;
+		}
+	}	
 	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts ,class'UIListener_MCM_Options'.default.RampingIntelCosts);
 }
 function float GetRampingIntelCosts(Optional bool PrintLog=false)  
@@ -415,6 +425,18 @@ function float GetRampingIntelCosts(Optional bool PrintLog=false)
 }
 function float GetIntelCostMultiplier() 
 {
+	local XComGameState_CampaignSettings CampaignSettingsStateObject;
+	local XComGameState_DPIO_Options DPIO_StateObject;
+
+	CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+    if(CampaignSettingsStateObject!=none)
+	{
+		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+		if(DPIO_StateObject != none)
+		{
+			return DPIO_StateObject.IntelCostMultiplier;
+		}
+	}	
 	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier,class'UIListener_MCM_Options'.default.IntelCostMultiplier);
 }
 
@@ -424,7 +446,6 @@ function float GetIntelCostMultiplier()
 // All our buttons should say "buy" or "buy for mission"
 simulated function String GetButtonString(int ItemIndex)
 {
-
 		return "BUY";
 }
 simulated function PickIntelOptions(XComGameState_MissionSite MissionState) //Just in case a mission has no intel options (or you want to reroll) it will roll the intel options even if the template dosnt allow that in stock.
