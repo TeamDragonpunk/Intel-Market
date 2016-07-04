@@ -76,7 +76,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
 		if(DPIO_StateObject != none )
 		{
-			if(DPIO_StateObject.ShowTutorial)
+			if(DPIO_StateObject.ShowTutorial ||DPIO_StateObject.Counter==0 )
 			{
 				TutScreen=Spawn(class'UITutorialScreen',self);
 				TutScreen.BuildScreen(TutorialTitleArray,TutorialTextArray,TutorialImageArray);

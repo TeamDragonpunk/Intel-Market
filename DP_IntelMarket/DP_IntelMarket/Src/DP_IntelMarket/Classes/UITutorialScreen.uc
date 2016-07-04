@@ -144,12 +144,18 @@ simulated public function SaveDSAState(bool DSAState)
 	if(CampaignSettingsStateObject!=none)
 	{
 		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
-		if(DPIO_StateObject != none && DSAState!=DPIO_StateObject.ShowTutorial)
+		if(DPIO_StateObject != none)
 		{
-			DPIO_StateObject.ShowTutorial=DSAState;
-			NewGameState=class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Changing popup");
-			NewGameState.AddStateObject(DPIO_StateObject);
-			`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+			if(DPIO_StateObject.Counter==0)
+				DPIO_StateObject.Counter++;
+
+			if(DSAState!=DPIO_StateObject.ShowTutorial)
+			{
+				DPIO_StateObject.ShowTutorial=DSAState;
+				NewGameState=class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Changing popup");
+				NewGameState.AddStateObject(DPIO_StateObject);
+				`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+			}
 		}
 	}
 }
