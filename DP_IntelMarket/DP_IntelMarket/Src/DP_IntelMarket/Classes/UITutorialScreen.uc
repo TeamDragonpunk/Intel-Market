@@ -68,8 +68,8 @@ simulated public function UpdateTutorialScreen()
 	TutorialText.SetText(TutorialTextArray[PageNumber]);
 	TutorialText.AnimateIn(0.1f);
 	
-	ForwardButton.AnimateOut(0.1f);
-	BackButton.AnimateOut(0.1f);
+	//ForwardButton.AnimateOut(0.1f);
+	//BackButton.AnimateOut(0.1f);
 	if(PageNumber==TutorialTitleArray.Length-1)
 	{
 		ForwardButton.SetText(class'UIUtilities_Text'.static.AlignCenter("Don't Show Again"));
@@ -80,8 +80,8 @@ simulated public function UpdateTutorialScreen()
 		ForwardButton.SetText(class'UIUtilities_Text'.static.AlignCenter(m_strContinue));
 		BackButton.SetText(class'UIUtilities_Text'.static.AlignCenter(m_strBack));
 	}
-	ForwardButton.AnimateIn(0.1f);
-	BackButton.AnimateIn(0.1f);
+	//ForwardButton.AnimateIn(0.1f);
+	//BackButton.AnimateIn(0.1f);
 }
 
 simulated public function OnForwardClicked(UIButton Button)
