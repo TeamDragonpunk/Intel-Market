@@ -46,9 +46,6 @@
     <Content Include="Src\DP_IntelMarket\Classes\UIListener_MCM_Options.uc">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Src\DP_IntelMarket\Classes\UITutorialScreen.uc">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Src\DP_IntelMarket\Classes\XComGameState_DPIO_Options.uc">
       <SubType>Content</SubType>
     </Content>
