@@ -14,16 +14,16 @@ var UILargeButton ExitButton;
 // MEMBERS
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
-	local XComGameState NewGameState;
 	local XComGameState_Unit Unit;
 	local int HackRewardIndex;
+	local SoundCue WelcomeCue;
 	super.InitScreen(InitController, InitMovie, InitName);
 	BuildScreen();
 	self.SetAlpha(1);
-	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Trigger Event: On Black Market Open");
-	`XEVENTMGR.TriggerEvent('OnBlackMarketOpen', , , NewGameState);
-	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
-		
+	WelcomeCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazzarOpen_Cue", class'SoundCue'));
+	PlaySound( WelcomeCue, true ); 
+
+
 	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Unit)
 	{
 		if(Unit.CurrentHackRewards.Length>0)
@@ -126,7 +126,7 @@ simulated function OnReceiveFocus()
 simulated function OnBuyClicked(UIButton button)
 {
 	DP_UIIntelMarketBuy();
-
+	//PlaySound( SoundCue'DP_PlaceholderPOI.DP_SoundTest_Cue', true ); 
 }
 // If you change this title, then you'll need to create a new button delegate
 simulated function OnSellClicked(UIButton button)
