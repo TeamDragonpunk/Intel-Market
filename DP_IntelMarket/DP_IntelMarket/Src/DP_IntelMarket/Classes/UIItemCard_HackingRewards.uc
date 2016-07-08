@@ -34,10 +34,7 @@ simulated function PopulateIntelItemCard(optional X2HackRewardTemplate ItemTempl
 simulated function SetIntelItemImages(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef)
 {
 	MC.BeginFunctionOp("SetImageStack");
-	if(ItemTemplate.RewardImagePath!="") //if we have an image on the template get the path to it, if not put a placeholder.
-		MC.QueueString(ItemTemplate.RewardImagePath);
-	else
-		MC.QueueString("img:///DP_PlaceholderPOI.POI_GoblinBazaar");
+	MC.QueueString(ItemTemplate.RewardImagePath);
 	MC.EndOp();
 }
 simulated function SetIntelItemCost(optional X2HackRewardTemplate ItemTemplate, optional StateObjectReference ItemRef,optional MissionIntelOption IntelOption)
@@ -58,7 +55,7 @@ simulated function SetInitialParameters() //Easy Setting of initial parameters,s
 {
 	PopulateData("Welcome","", "", ""); //Prints a "Welcome" title on the card.
 	MC.BeginFunctionOp("SetImageStack");
-	MC.QueueString("img:///DP_PlaceholderPOI.POI_GoblinBazaar"); //Prints the placeholder image
+	MC.QueueString(""); //Prints the placeholder image
 	MC.EndOp();
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString(""); //Should print "Cost"  isn't needed here
@@ -73,7 +70,7 @@ simulated function SetNullParameters() //Easy setting of parameters for null ite
 {
 	PopulateData("","", "", "");
 	MC.BeginFunctionOp("SetImageStack");
-	MC.QueueString("img:///DP_PlaceholderPOI.POI_GoblinBazaar");
+	MC.QueueString("");
 	MC.EndOp();
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString("");	//Should print "Cost" donst need to if null
@@ -87,9 +84,21 @@ simulated function SetNullParameters() //Easy setting of parameters for null ite
 
 function bool GetIsRampingIntelCosts() 
 {
+	local XComGameState_CampaignSettings CampaignSettingsStateObject;
+	local XComGameState_DPIO_Options DPIO_StateObject;
+
+	CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+    if(CampaignSettingsStateObject!=none)
+	{
+		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+		if(DPIO_StateObject != none)
+		{
+			return DPIO_StateObject.RampingIntelCosts;
+		}
+	}	
 	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_RampingIntelCosts ,class'UIListener_MCM_Options'.default.RampingIntelCosts);
 }
-function float GetRampingIntelCosts(Optional bool PrintLog=false) 
+function float GetRampingIntelCosts(Optional bool PrintLog=false)  
 {
 	local XComGameState_HeadquartersAlien AlienHQ;
 	local float RampLevel;
@@ -104,12 +113,24 @@ function float GetRampingIntelCosts(Optional bool PrintLog=false)
 		RampLevel=0;
 
 	if(PrintLog)
-		`log("Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
+		`log("Total Multiplier:"@(GetIntelCostMultiplier()*(1+Ramplevel))@"Base Cost Multiplier:"@GetIntelCostMultiplier() @"Final Ramp Level:"@1+RampLevel @"Force"@Force @"Force-StartingForce"@Force-StartingForce @"StartingForce"@StartingForce @"MaxForce"@MaxForce @"Ramping:"@GetIsRampingIntelCosts(),true,'Team Dragonpunk Intel Options');
 	
 	return 1.0f+RampLevel;
 
 }
 function float GetIntelCostMultiplier() 
 {
+	local XComGameState_CampaignSettings CampaignSettingsStateObject;
+	local XComGameState_DPIO_Options DPIO_StateObject;
+
+	CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+    if(CampaignSettingsStateObject!=none)
+	{
+		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+		if(DPIO_StateObject != none)
+		{
+			return DPIO_StateObject.IntelCostMultiplier;
+		}
+	}	
 	return `MCM_CH_GetValue(class'DP_IntelOptions_Defaults'.default.Default_IntelCostMultiplier,class'UIListener_MCM_Options'.default.IntelCostMultiplier);
 }

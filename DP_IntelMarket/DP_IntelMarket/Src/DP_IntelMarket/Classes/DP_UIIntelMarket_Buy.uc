@@ -534,8 +534,15 @@ simulated function array<MissionIntelOption> GetMissionIntelOptions()
 		else
 			HasMaxSlots=false;
 
-		if(HasMaxSlots==false&&StartingConcealed==false&&(Screen.GetMission().PurchasedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1 && SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1) &&HasExclusives==false)
+		if( HasMaxSlots==false&&StartingConcealed==false
+		&& (Screen.GetMission().PurchasedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1 
+		&& SelectedIntelOptions.Find('IntelRewardName',IntelOption.IntelRewardName) ==-1) 
+		&& HasExclusives==false
+		&& !(string(IntelOption.IntelRewardName)~="Override_T1")
+		&& !(string(IntelOption.IntelRewardName)~="Override_T2"))
+		{
 			IOPSOut.AddItem(IntelOption); //If the current one is flagged for concealment filtering,extra soldier filtering, mutually exclusive filtering OR is present in the already purchased(red,refundable) intel options or already an active(gray) option dont add it to the available intel options for that mission.
+		}
 	}
 	return IOPSOut;
 

@@ -25,7 +25,13 @@
     <Content Include="Config\XComDP_IntelOptions_Defaults.ini">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Config\XComGameCore.ini">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Config\XComGameData.ini">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Content\DP_ItemCards.upk">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Content\DP_PlaceholderPOI.upk">
