@@ -51,6 +51,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	HackingRewardCard.PopulateIntelItemCard(self.GetItemTemplate(0));
 	HackingRewardCard.SetInitialParameters();
 	HackingRewardCard.Show();
+	HackingRewardCard.SetNullParameters();
 	ExitButton = Spawn(class'UILargeButton', self); //Spawning the button for going to squad select.
 	ExitButton.bAnimateOnInit = false;
 	ExitButton.InitLargeButton('ExitButton',"SQUAD" , "SELECT", OnStartMissionClicked);
@@ -65,6 +66,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	PopulateData(); //Populating the list 
 	UpdateListParameters(List);//fixing list colors and layout.
 	PageNumber=0;
+	HackingRewardCard.SetInitialParameters();
 	/*TutScreen=Spawn(class'UITutorialScreen',self);
 	TutScreen.InitArrays(TutorialTitleArray,TutorialTextArray,TutorialImageArray);
 	TutScreen.BuildScreen();
@@ -214,6 +216,9 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	local StrategyCost FixedCost;                    
 	local XComGameState_Unit Unit;
 	local array<string> AddedNames,AddedNames2;
+	local XComGameState_CampaignSettings CampaignSettingsStateObject;
+	local XComGameState_DPIO_Options DPIO_StateObject;
+
 	FinalMultiplier=GetRampingIntelCosts()*GetIntelCostMultiplier();
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
@@ -244,7 +249,6 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 		}
 		Unit.CurrentHackRewards.Remove(0, Unit.CurrentHackRewards.Length);
 		Unit.CurrentHackRewards.Length=0;
-		HasChanged=true;
 	}
 
 	for(i=0;i<XComHQ.TacticalGameplayTags.Length;i++)
@@ -252,7 +256,6 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 		if(IsValidIntelItemTemplate(`XComHQ.TacticalGameplayTags[i])||AddedNames.Find(string(`XComHQ.TacticalGameplayTags[i]))!=-1||AddedNames2.Find(string(`XComHQ.TacticalGameplayTags[i]))!=-1)
 		{
 			XComHQ.TacticalGameplayTags.RemoveItem(`XComHQ.TacticalGameplayTags[i]);	
-			HasChanged=true;
 		}
 	}	
 	LogError();
@@ -261,7 +264,6 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 	{
 		IntelOption=MissionState.PurchasedIntelOptions[i];
 		XComHQ.TacticalGameplayTags.AddItem(IntelOption.IntelRewardName);
-		HasChanged=true;
 	}
 	// Save and buy the intel options, and add their tactical tags
 	for(i=0;i<SelectedIntelOptions.length;i++)
@@ -278,14 +280,27 @@ simulated function BuyAndSaveIntelOptions() //Buy and apply the purhcased intel 
 		HasChanged=true;
 	}
 	
-	/*if(HasChanged) //Submit to history if we did something
-		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
-	else
-		`XCOMHISTORY.CleanupPendingGameState(NewGameState);*/
+	if(HasChanged) //Submit to history if we did something
+	{
+		CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+		if(CampaignSettingsStateObject!=none)
+		{
+			DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+			if(DPIO_StateObject != none)
+			{
+				DPIO_StateObject.NumberOfTimesBought++;
+				NewGameState.AddStateObject(DPIO_StateObject);
+			}
+		}
+	
+	}	
+	
 	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	SelectedIntelOptions.Length=0;
 	LogError();
 	XComHQPresentationLayer(Movie.Pres).m_kAvengerHUD.UpdateResources();
+	DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+	`log("NumberOfTimesBought"@DPIO_StateObject.NumberOfTimesBought,true,'Team Dragonpunk');
 }
 
 simulated function LogError()

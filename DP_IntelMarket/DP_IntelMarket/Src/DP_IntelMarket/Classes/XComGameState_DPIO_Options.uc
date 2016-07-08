@@ -5,3 +5,4 @@ var float IntelCostMultiplier;
 var bool RampingIntelCosts;
 var bool ShowTutorial;
 var int Counter;
+var int NumberOfTimesBought;

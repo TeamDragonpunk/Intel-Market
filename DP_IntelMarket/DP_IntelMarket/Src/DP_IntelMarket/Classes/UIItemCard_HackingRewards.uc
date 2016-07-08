@@ -55,7 +55,7 @@ simulated function SetInitialParameters() //Easy Setting of initial parameters,s
 {
 	PopulateData("Welcome","", "", ""); //Prints a "Welcome" title on the card.
 	MC.BeginFunctionOp("SetImageStack");
-	MC.QueueString(""); //Prints the placeholder image
+	MC.QueueString(" "); //Prints the placeholder image
 	MC.EndOp();
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString(""); //Should print "Cost"  isn't needed here
