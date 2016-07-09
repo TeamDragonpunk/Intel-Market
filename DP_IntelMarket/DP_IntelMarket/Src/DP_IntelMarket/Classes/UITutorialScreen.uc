@@ -7,6 +7,7 @@ var array<string> TutorialTitleArray;
 var array<string> TutorialTextArray;
 var array<string> TutorialImageArray;
 
+var UIBGBox BGBox;
 var UIImage TutorialImage;
 var UIText TutorialText;
 var array<UIX2PanelHeader> TutorialHeaders;
@@ -43,6 +44,11 @@ simulated function BuildScreen(optional array<string> TitleA,optional array<stri
 	rText = MakeRect(462, 650, 900,75);
 	//MainBGBox.OriginCenter();
 	//MainBGBox.AnchorCenter();
+	BGBox.bAnimateOnInit=false;
+	BGBox= Spawn(class'UIBGBox', self).InitBG('', rImage.fLeft, rImage.fTop, RectWidth(rImage), RectHeight(rImage));
+	BGBox.bAnimateOnInit=false;
+	BGBox.SetBGColorState(eUIState_Good);
+	BGBox.SetAlpha(0.8f);
 	TutorialImage=AddImage(rImage,TutorialImageArray[0],eUIState_Good,,self);
 	TutorialImage.SetSize(900,450);
 	TutorialImage.SetPosition(462,200);

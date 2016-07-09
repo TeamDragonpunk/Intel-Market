@@ -10,10 +10,10 @@ TutorialTextArray[1]="Test Text 12----------------------------------------------
 TutorialTextArray[2]="Test Text 22---------------------------------------------------2-------------------------------------------------"
 TutorialTextArray[3]="Should this tutorial be shown again next time?"
 
-TutorialImageArray[0]="img:///DP_PlaceholderPOI.POI_GoblinBazaar"
-TutorialImageArray[1]="img:///DP_PlaceholderPOI.Pic_2"
+TutorialImageArray[0]="img:///DP_PlaceholderPOI.GoblinBazzar_Main_1"
+TutorialImageArray[1]="img:///DP_PlaceholderPOI.TempPic_2"
 TutorialImageArray[2]="img:///DP_PlaceholderPOI.Pic1"
-TutorialImageArray[3]="img:///DP_PlaceholderPOI.POI_GoblinBazaar"
+TutorialImageArray[3]="img:///DP_PlaceholderPOI.GoblinBazzar_Main_1"
 
 
 [DP_UIIntelMarket]
