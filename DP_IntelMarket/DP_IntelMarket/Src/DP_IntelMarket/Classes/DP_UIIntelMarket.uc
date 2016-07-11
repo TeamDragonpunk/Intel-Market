@@ -23,20 +23,23 @@ var UIImage ImageTarget;
 
 var UILargeButton ExitButton;
 
+var AudioComponent AmbienceComp;
+
 //----------------------------------------------------------------------------
 // MEMBERS
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
 	local XComGameState_Unit Unit;
 	local int HackRewardIndex;
-	local SoundCue WelcomeCue;
+	local SoundCue WelcomeCue,Ambience;
 	super.InitScreen(InitController, InitMovie, InitName);
 	BuildScreen();
 	self.SetAlpha(1);
 	WelcomeCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazaarOpen_Cue", class'SoundCue'));
-	PlaySound( WelcomeCue, true ); 
-
-
+	Ambience = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazaar_Ambience_Cue", class'SoundCue'));
+	PlaySound( WelcomeCue, true ,true,true); 
+	//PlaySound( Ambience, true ,true,true); 
+	AmbienceComp= CreateAudioComponent(Ambience,true,true,true);
 	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Unit)
 	{
 		if(Unit.CurrentHackRewards.Length>0)
@@ -236,6 +239,7 @@ simulated function ExposeOLC(UIButton Button) // Triggerring the ExposeOLC funct
 
 simulated function CloseScreen()
 {
+	AmbienceComp.Stop();
 	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
 	super.CloseScreen();
 }
@@ -390,7 +394,14 @@ simulated function LogError()
 //==============================================================================
 
 defaultproperties
-{
+{	
+	/*
+	Begin Object Class=AudioComponent Name=AmbienceComp
+		SoundCue=SoundCue'DP_Sound.DP_GoblinBazaar_Ambience_Cue'
+	End Object
+
+	Components.Add(AmbienceComp);
+	*/
 	InputState = eInputState_Consume;
 	Package = "/ package/gfxBlackMarket/BlackMarket";
 	bConsumeMouseEvents = true;
