@@ -74,7 +74,7 @@ simulated function BuildScreen()
 	local XComGameState_CampaignSettings CampaignSettingsStateObject;
 	local XComGameState_DPIO_Options DPIO_StateObject;
 
-	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Enter");
+	//`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Enter");
 
 	LibraryPanel = Spawn(class'UIPanel', self);
 	LibraryPanel.bAnimateOnInit = false;
