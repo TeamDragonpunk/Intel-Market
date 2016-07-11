@@ -1,8 +1,21 @@
 class DP_UIIntelMarket extends UIScreen;
 
-var public localized String m_strBuy;
-var public localized String m_strSell;
-var public localized String m_strImage;
+var public localized array<String> m_strImage;
+
+//Lvl 1
+var public localized array<String> m_strMarketQuotesLvl_1;
+var public localized array<String> m_strShortTextLvl_1;
+var public localized array<String> m_strLongTextLvl_1;
+
+//Lvl 2
+var public localized array<String> m_strMarketQuotesLvl_2;
+var public localized array<String> m_strShortTextLvl_2;
+var public localized array<String> m_strLongTextLvl_2;
+
+//Lvl 3
+var public localized array<String> m_strMarketQuotesLvl_3;
+var public localized array<String> m_strShortTextLvl_3;
+var public localized array<String> m_strLongTextLvl_3;
 
 var UIPanel LibraryPanel;
 var UIButton Button1, Button2, Button3;
@@ -20,7 +33,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	super.InitScreen(InitController, InitMovie, InitName);
 	BuildScreen();
 	self.SetAlpha(1);
-	WelcomeCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazzarOpen_Cue", class'SoundCue'));
+	WelcomeCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazaarOpen_Cue", class'SoundCue'));
 	PlaySound( WelcomeCue, true ); 
 
 
@@ -57,6 +70,9 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 simulated function BuildScreen()
 {
 	local UIPanel ButtonGroup;
+	local int i,LevelChecker;
+	local XComGameState_CampaignSettings CampaignSettingsStateObject;
+	local XComGameState_DPIO_Options DPIO_StateObject;
 
 	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Enter");
 
@@ -85,26 +101,70 @@ simulated function BuildScreen()
 	ExitButton.AnchorBottomRight();
 
 	ImageTarget = Spawn(class'UIImage', LibraryPanel).InitImage('MarketMenuImage');
-	`log("m_strImage:"@m_strImage,true,'Team Dragonpunk POI Art');
-	ImageTarget.LoadImage("img:///DP_PlaceholderPOI.GoblinBazzar_Main_1_Blue");
+	`log("m_strImage:"@m_strImage[0],true,'Team Dragonpunk POI Art');
+	`log("m_strImage:"@m_strImage[1],true,'Team Dragonpunk POI Art');
+	`log("m_strImage:"@m_strImage[2],true,'Team Dragonpunk POI Art');
+	
 
 	//-----------------------------------------------
+	CampaignSettingsStateObject=XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	if(CampaignSettingsStateObject!=none)
+	{
+		DPIO_StateObject=XComGameState_DPIO_Options(CampaignSettingsStateObject.FindComponentObject(class'XComGameState_DPIO_Options', false));
+		if(DPIO_StateObject != none )
+		{
+			LevelChecker=0;
+			if(DPIO_StateObject.NumberOfTimesBought>15)
+				LevelChecker=1;
+			if(DPIO_StateObject.NumberOfTimesBought>30)
+				LevelChecker=2;
+		}
+	}
 
-	LibraryPanel.MC.FunctionString("SetMenuQuote", "The Goblins Welcome You To Their Bazzar!");
-
-	LibraryPanel.MC.BeginFunctionOp("SetMenuInterest");
-	LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft("Guide"));
-	LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft("Purchased Options will last for 1 mission only"));
-	LibraryPanel.MC.EndOp();
-
+	if(LevelChecker==2)
+	{
+		ImageTarget.LoadImage(m_strImage[2]);
+		i=Rand(m_strMarketQuotesLvl_3.Length);
+		LibraryPanel.MC.FunctionString("SetMenuQuote", m_strMarketQuotesLvl_3[i]);
+		i=Rand(m_strShortTextLvl_3.Length);
+		LibraryPanel.MC.BeginFunctionOp("SetMenuInterest");
+		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignCenter(m_strShortTextLvl_3[i]));
+		i=Rand(m_strLongTextLvl_3.Length);
+		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft(m_strLongTextLvl_3[i]));
+		LibraryPanel.MC.EndOp();
+	}
+	else if(LevelChecker==1)
+	{
+		ImageTarget.LoadImage(m_strImage[1]);
+		i=Rand(m_strMarketQuotesLvl_2.Length);
+		LibraryPanel.MC.FunctionString("SetMenuQuote", m_strMarketQuotesLvl_2[i]);
+		i=Rand(m_strShortTextLvl_2.Length);
+		LibraryPanel.MC.BeginFunctionOp("SetMenuInterest");
+		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignCenter(m_strShortTextLvl_2[i]));
+		i=Rand(m_strLongTextLvl_2.Length);
+		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft(m_strLongTextLvl_2[i]));
+		LibraryPanel.MC.EndOp();
+	}
+	else
+	{
+		ImageTarget.LoadImage(m_strImage[0]);
+		i=Rand(m_strMarketQuotesLvl_1.Length);
+		LibraryPanel.MC.FunctionString("SetMenuQuote", m_strMarketQuotesLvl_1[i]);
+		i=Rand(m_strShortTextLvl_1.Length);
+		LibraryPanel.MC.BeginFunctionOp("SetMenuInterest");
+		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignCenter(m_strShortTextLvl_1[i]));
+		i=Rand(m_strLongTextLvl_1.Length);
+		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft(m_strLongTextLvl_1[i]));
+		LibraryPanel.MC.EndOp();
+	}
 	Button1.OnClickedDelegate = OnBuyClicked;
 	Button2.OnClickedDelegate = OnSellClicked;
 	Button3.Hide();
 
 	LibraryPanel.MC.BeginFunctionOp("SetGreeble");
-	LibraryPanel.MC.QueueString("Put Something Cool Here");
+	LibraryPanel.MC.QueueString("Goblin Bazaar");
 	LibraryPanel.MC.QueueString(class'UIAlert'.default.m_strBlackMarketFooterRight);
-    LibraryPanel.MC.QueueString("GOBLIN BAZAAR");
+    LibraryPanel.MC.QueueString("Goblin Bazaar");
 	LibraryPanel.MC.EndOp();
 
 	LibraryPanel.MC.FunctionVoid("AnimateIn");

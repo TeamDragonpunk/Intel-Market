@@ -38,8 +38,8 @@ simulated function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 		LoadSavedSettings();
 		`log("Loaded Saved Settings:"@IntelCostMultiplier @RampingIntelCosts);
 		TempString= ((int(IntelCostMultiplier*10))/10)$"."$((int(IntelCostMultiplier*10)%10));
-		Page = ConfigAPI.NewSettingsPage("Goblin Bazzar");
-		Page.SetPageTitle("Team Dragonpunk Goblin Bazzar");
+		Page = ConfigAPI.NewSettingsPage("Goblin bazaar");
+		Page.SetPageTitle("Team Dragonpunk Goblin bazaar");
 		Page.SetSaveHandler(SaveButtonClicked);
 
 		Group = Page.AddGroup('Group1', "General Settings");

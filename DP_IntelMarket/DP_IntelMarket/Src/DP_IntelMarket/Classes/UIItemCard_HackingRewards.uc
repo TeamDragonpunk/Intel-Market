@@ -59,7 +59,7 @@ simulated function SetInitialParameters() //Easy Setting of initial parameters,s
 	MC.EndOp();
 	MC.BeginFunctionOp("PopulateCostData");
 	MC.QueueString(""); //Should print "Cost"  isn't needed here
-	MC.QueueString("The Goblins Welcome You To Their Bazzar"); //Should print the cost, prints that string here
+	MC.QueueString("The Goblins Welcome You To Their bazaar"); //Should print the cost, prints that string here
 	MC.QueueString(""); //Should print "requirements", leave empty for this
 	MC.QueueString(""); //Should print the actual requirements, leave empty for this
 	MC.EndOp();
