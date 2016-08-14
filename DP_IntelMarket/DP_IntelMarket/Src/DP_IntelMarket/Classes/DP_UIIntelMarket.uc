@@ -105,8 +105,8 @@ simulated function BuildScreen()
 
 	ImageTarget = Spawn(class'UIImage', LibraryPanel).InitImage('MarketMenuImage');
 	`log("m_strImage:"@m_strImage[0],true,'Team Dragonpunk POI Art');
-	`log("m_strImage:"@m_strImage[1],true,'Team Dragonpunk POI Art');
-	`log("m_strImage:"@m_strImage[2],true,'Team Dragonpunk POI Art');
+	//`log("m_strImage:"@m_strImage[1],true,'Team Dragonpunk POI Art');
+	//`log("m_strImage:"@m_strImage[2],true,'Team Dragonpunk POI Art');
 	
 
 	//-----------------------------------------------
@@ -117,14 +117,14 @@ simulated function BuildScreen()
 		if(DPIO_StateObject != none )
 		{
 			LevelChecker=0;
-			if(DPIO_StateObject.NumberOfTimesBought>15)
+			/*if(DPIO_StateObject.NumberOfTimesBought>15)
 				LevelChecker=1;
 			if(DPIO_StateObject.NumberOfTimesBought>30)
-				LevelChecker=2;
+				LevelChecker=2;*/
 		}
 	}
 
-	if(LevelChecker==2)
+	/*if(LevelChecker==2)
 	{
 		ImageTarget.LoadImage(m_strImage[2]);
 		i=Rand(m_strMarketQuotesLvl_3.Length);
@@ -149,17 +149,17 @@ simulated function BuildScreen()
 		LibraryPanel.MC.EndOp();
 	}
 	else
-	{
-		ImageTarget.LoadImage(m_strImage[0]);
-		i=Rand(m_strMarketQuotesLvl_1.Length);
-		LibraryPanel.MC.FunctionString("SetMenuQuote", m_strMarketQuotesLvl_1[i]);
-		i=Rand(m_strShortTextLvl_1.Length);
-		LibraryPanel.MC.BeginFunctionOp("SetMenuInterest");
-		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignCenter(m_strShortTextLvl_1[i]));
-		i=Rand(m_strLongTextLvl_1.Length);
-		LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft(m_strLongTextLvl_1[i]));
-		LibraryPanel.MC.EndOp();
-	}
+	{*/
+	ImageTarget.LoadImage(m_strImage[0]);
+	i=Rand(m_strMarketQuotesLvl_1.Length);
+	LibraryPanel.MC.FunctionString("SetMenuQuote", m_strMarketQuotesLvl_1[i]);
+	//i=Rand(m_strShortTextLvl_1.Length);
+	LibraryPanel.MC.BeginFunctionOp("SetMenuInterest");
+	LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignCenter(m_strShortTextLvl_1[i]));
+	//i=Rand(m_strLongTextLvl_1.Length);
+	LibraryPanel.MC.QueueString(class'UIUtilities_Text'.static.AlignLeft(m_strLongTextLvl_1[i]));
+	LibraryPanel.MC.EndOp();
+	//}
 	Button1.OnClickedDelegate = OnBuyClicked;
 	Button2.OnClickedDelegate = OnSellClicked;
 	Button3.Hide();
@@ -239,11 +239,13 @@ simulated function ExposeOLC(UIButton Button) // Triggerring the ExposeOLC funct
 
 simulated function CloseScreen()
 {
+	local SoundCue EndCue;
+	EndCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazaar_End", class'SoundCue'));
+	PlaySound(EndCue,true,true,true); 
 	AmbienceComp.Stop();
-	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
+	//`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
 	super.CloseScreen();
 }
-
 simulated function bool OnUnrealCommand(int cmd, int arg)
 {
 	local bool bHandled;
@@ -285,7 +287,9 @@ simulated function OnStartMissionClicked(UIButton button) //When clicking on the
 	local bool HasChanged;
 	local XComGameState_Unit Unit;
 	local array<string> AddedNames,AddedNames2;
-
+	local SoundCue EndCue;
+	EndCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazaar_End", class'SoundCue'));
+	PlaySound(EndCue,true,true,true); 
 	Screen=UIMission(`SCREENSTACK.GetFirstInstanceOf(Class'UIMission'));
 	History = `XCOMHISTORY;
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Buy and Save Selected Mission Intel Options");
@@ -338,7 +342,7 @@ simulated function OnStartMissionClicked(UIButton button) //When clicking on the
 	else
 		`XCOMHISTORY.CleanupPendingGameState(NewGameState);*/
 	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
-	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
+	//`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
 	`SCREENSTACK.Pop(self);//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
 	CloseScreen();
 	ExposeOLC(button); // Fire up the original functions from the UIMission screens,moving the player to the squad select screen.

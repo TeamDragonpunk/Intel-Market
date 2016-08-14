@@ -24,18 +24,19 @@ TutorialImageArray[3]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_3"
 
 
 [DP_UIIntelMarket]
-m_strImage[0]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_1"
-m_strImage[1]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_2"
-m_strImage[2]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_3"
+m_strImage[0]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_3"
+;m_strImage[0]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_1"
+;m_strImage[1]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_2"
+;m_strImage[2]="img:///DP_PlaceholderPOI.GoblinBazaar_Main_Lvl_3"
 
 m_strMarketQuotesLvl_1[0]= "Come Buy, Come Buy! Morning and evening maids heard the goblins cry!"
 m_strShortTextLvl_1[0]= "Lilith's Bestiary - Page 92:"
 m_strLongTextLvl_1[0]= "England 1859, Afghanistan 2005, wherever there are secrets, there are Goblins. Masters of Spycraft a millennia before my entombment, they are now a global network."
 
-m_strMarketQuotesLvl_2[0]= "Come Buy, Come Buy! Morning and evening maids heard the goblins cry! Test 2 "
-m_strShortTextLvl_2[0]= "Lilith's Bestiary - Page 92: Test 2"
-m_strLongTextLvl_2[0]= "Text 2. England 1859, Afghanistan 2005, wherever there are secrets, there are Goblins. Masters of Spycraft a millennia before my entombment, they are now a global network."
+;m_strMarketQuotesLvl_2[0]= "Come Buy, Come Buy! Morning and evening maids heard the goblins cry! Test 2 "
+;m_strShortTextLvl_2[0]= "Lilith's Bestiary - Page 92: Test 2"
+;m_strLongTextLvl_2[0]= "Text 2. England 1859, Afghanistan 2005, wherever there are secrets, there are Goblins. Masters of Spycraft a millennia before my entombment, they are now a global network."
 
-m_strMarketQuotesLvl_3[0]= "Come Buy, Come Buy! Morning and evening maids heard the goblins cry! Test 3 "
-m_strShortTextLvl_3[0]= "Lilith's Bestiary - Page 92: Test 3"
-m_strLongTextLvl_3[0]= "Text 3. England 1859, Afghanistan 2005, wherever there are secrets, there are Goblins. Masters of Spycraft a millennia before my entombment, they are now a global network."
+;m_strMarketQuotesLvl_3[0]= "Come Buy, Come Buy! Morning and evening maids heard the goblins cry! Test 3 "
+;m_strShortTextLvl_3[0]= "Lilith's Bestiary - Page 92: Test 3"
+;m_strLongTextLvl_3[0]= "Text 3. England 1859, Afghanistan 2005, wherever there are secrets, there are Goblins. Masters of Spycraft a millennia before my entombment, they are now a global network."

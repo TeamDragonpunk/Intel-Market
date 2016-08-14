@@ -98,13 +98,16 @@ simulated function PopulateData()
 simulated function OnStartMissionClicked(UIButton button) //When clicking on the button to go to squad select.
 {
 	local DP_UIIntelMarket MyDPScreen;
+	local SoundCue EndCue;
+	EndCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazaar_End", class'SoundCue'));
+	PlaySound(EndCue,true,true,true); 
 	MyDPScreen=DP_UIIntelMarket(`ScreenStack.GetFirstInstanceOf(class'DP_UIIntelMarket'));
 	`SCREENSTACK.Pop(self);//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
 	`SCREENSTACK.PopFirstInstanceOfClass(Class'DP_UIIntelMarket');//popping from Screen Stack so it wont go back to it when backing out of the squad select screen.
 	BuyAndSaveIntelOptions(); //Submit the actual intel options to the mission to take effect.
 	CloseScreen();
 	//MyDPScreen.CloseScreen();
-	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
+	//`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop"); //stop the music from the black market so the game would be able to fire up the squad select music
 	if(MyDPScreen!=none)
 	{
 		MyDPScreen.ExposeOLC(button); // Fire up the original functions from the UIMission screens,moving the player to the squad select screen.
@@ -158,7 +161,10 @@ simulated function bool CanAffordIntelOptionsAll(MissionIntelOption IntelOption,
 }
 simulated function CloseScreen()
 {
-	`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
+	local SoundCue EndCue;
+	EndCue = SoundCue(DynamicLoadObject("DP_Sound.DP_GoblinBazaar_End", class'SoundCue'));
+	PlaySound(EndCue,true,true,true); 
+	//`XSTRATEGYSOUNDMGR.PlaySoundEvent("Black_Market_Ambience_Loop_Stop");
 	super.CloseScreen();
 }
 
